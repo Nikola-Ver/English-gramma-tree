@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="ru">
-<head>
-<meta charset="UTF-8">
+<!-- saved from url=(0047)file:///Users/nikola-ver/Downloads/index_1.html -->
+<html lang="ru"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>English Grammar Tree — A1→C2</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="./English Grammar Tree — A1→C2_files/css2" rel="stylesheet">
 <style>
 :root{
   --bg:#0d0f14;--bg2:#131620;--bg3:#1a1e2a;
@@ -48,8 +48,8 @@ header{margin-bottom:2rem;}
 /* Level blocks */
 .level-path{display:flex;flex-direction:column;gap:0;}
 .level-block{position:relative;margin-bottom:24px;}
-.level-block:not(:last-child)::after{content:'';position:absolute;left:20px;bottom:-24px;width:2px;height:24px;background:var(--border2);z-index:2;}
-.level-header{display:flex;align-items:center;gap:12px;padding:1rem 1.15rem;background:var(--bg2);border:1px solid var(--border);border-radius:13px;cursor:pointer;transition:border-color 0.2s,background 0.2s;position:relative;z-index:3;user-select:none;}
+.level-block:not(:last-child)::after{content:'';position:absolute;left:20px;bottom:-24px;width:2px;height:28px;background:var(--border2);z-index:2;}
+.level-header{display:flex;align-items:center;gap:12px;padding:1rem 1.15rem;background:var(--bg2);border:1px solid var(--border);border-radius:13px;cursor:pointer;transition:border-color 0.2s,background 0.2s;position:relative;z-index:3;user-select:none;border-bottom-right-radius:0;border-bottom-left-radius:0;border-bottom:none;}
 .level-header:hover{border-color:var(--border2);background:var(--bg3);}
 .level-dot{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:12px;font-weight:500;flex-shrink:0;border:2px solid;transition:all 0.3s;}
 .level-info{flex:1;min-width:0;}
@@ -66,9 +66,9 @@ header{margin-bottom:2rem;}
 /* Content */
 .level-content{display:none;padding:0 0 4px 50px;position:relative;z-index:2;}
 .level-block.open .level-content{display:block;}
-.level-content::before{content:'';position:absolute;left:19px;top:0;bottom:4px;width:2px;background:var(--border2);}
+.level-content::before{content:'';position:absolute;left:20px;top:-16px;bottom:4px;width:2px;background:var(--border2);}
 .category{margin-top:16px;position:relative;}
-.category::before{content:'';position:absolute;left:-31px;top:12px;width:12px;height:2px;background:var(--border2);}
+.category::before{content:'';position:absolute;left:-28px;top:5.5px;width:20px;height:2px;background:var(--border2);}
 .category-title{font-size:10px;text-transform:uppercase;letter-spacing:0.13em;color:var(--muted);font-weight:600;margin-bottom:7px;}
 .rules-grid{display:flex;flex-direction:column;gap:5px;}
 
@@ -113,8 +113,78 @@ header{margin-bottom:2rem;}
 .yt .lnk-dot{background:var(--yt);}
 .ru .lnk-dot{background:var(--ru);}
 
+/* ── Check animation ─────────────────────────────────────── */
 @keyframes pop{0%{transform:scale(0.5);opacity:0}60%{transform:scale(1.15)}100%{transform:scale(1);opacity:1}}
-.celebrate{animation:pop 0.35s cubic-bezier(0.34,1.56,0.64,1);}
+
+@keyframes checkPulse{
+  0%{box-shadow:0 0 0 0 rgba(var(--chk-rgb,74,222,128),0.7)}
+  60%{box-shadow:0 0 0 10px rgba(var(--chk-rgb,74,222,128),0)}
+  100%{box-shadow:0 0 0 0 rgba(var(--chk-rgb,74,222,128),0)}
+}
+@keyframes checkmarkDraw{
+  0%{stroke-dashoffset:20}
+  100%{stroke-dashoffset:0}
+}
+@keyframes ruleSlideIn{
+  0%{transform:translateX(-6px);opacity:0.5}
+  100%{transform:translateX(0);opacity:1}
+}
+@keyframes ruleGlow{
+  0%{box-shadow:0 0 0 0 rgba(var(--chk-rgb,74,222,128),0.25);border-color:rgba(var(--chk-rgb,74,222,128),0.6)}
+  50%{box-shadow:0 0 18px 2px rgba(var(--chk-rgb,74,222,128),0.18);border-color:rgba(var(--chk-rgb,74,222,128),0.9)}
+  100%{box-shadow:none;border-color:transparent}
+}
+@keyframes textStrike{
+  0%{text-decoration-color:transparent}
+  100%{text-decoration-color:var(--muted)}
+}
+@keyframes particleFly{
+  0%{transform:translate(0,0) scale(1);opacity:1}
+  100%{transform:translate(var(--tx),var(--ty)) scale(0);opacity:0}
+}
+@keyframes uncheck{
+  0%{transform:scale(1);opacity:1}
+  30%{transform:scale(0.7) rotate(-15deg);opacity:0.7}
+  100%{transform:scale(1);opacity:1}
+}
+
+.rule-check{position:relative;overflow:visible !important;}
+
+/* svg checkmark inside .rule-check */
+.rule-check svg.chk-svg{
+  position:absolute;inset:0;width:100%;height:100%;
+  pointer-events:none;
+}
+.rule-check svg.chk-svg path{
+  stroke-dasharray:20;
+  stroke-dashoffset:0;
+  transition:none;
+}
+.rule-check.anim-check svg.chk-svg path{
+  animation:checkmarkDraw 0.25s 0.08s ease forwards;
+}
+.rule-check.anim-check{
+  animation:checkPulse 0.55s ease forwards;
+}
+
+.rule-item.celebrate-enter{
+  animation:ruleSlideIn 0.25s ease, ruleGlow 0.7s 0.1s ease forwards;
+}
+.rule-item.celebrate-enter .rule-text{
+  animation:ruleSlideIn 0.3s ease;
+}
+.rule-item.celebrate-enter.done .rule-text{
+  animation:textStrike 0.4s 0.2s ease forwards;
+  text-decoration-color:transparent;
+}
+
+.rule-item.uncheck-anim .rule-check{
+  animation:uncheck 0.3s ease;
+}
+
+/* Particle canvas layer */
+.rule-check-wrap{position:relative;display:inline-flex;flex-shrink:0;margin-top:2px;}
+.particle-canvas{position:fixed;pointer-events:none;z-index:9999;}
 
 .reset-btn{background:none;border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:6px 14px;font-size:12px;cursor:pointer;font-family:'Outfit',sans-serif;transition:all 0.15s;margin-top:2rem;}
 .reset-btn:hover{border-color:var(--border2);color:var(--text);}
@@ -127,7 +197,6 @@ header{margin-bottom:2rem;}
   <div class="header-top">
     <div class="title-block">
       <h1>English <span>Grammar</span> Tree</h1>
-      <p>Нажми правило — отметить выученное · ℹ️ — объяснение, примеры и ссылки<br>🔴 YouTube · 🔵 Упражнения на русском · ⬜ Упражнения на английском</p>
     </div>
     <div class="overall-progress">
       <div class="overall-num" id="total-done">0</div>
@@ -1152,28 +1221,133 @@ function updLvl(lvlKey){
   if(b)b.style.width=pct+'%';
 }
 
-function toggleRule(id){
-  done[id]=!done[id];saveD(done);
-  var el=document.getElementById('ri-'+id);if(!el)return;
+/* ── Particle burst ── */
+function spawnParticles(chkEl, color){
+  var rect = chkEl.getBoundingClientRect();
+  var cx = rect.left + rect.width/2;
+  var cy = rect.top + rect.height/2;
+  var canvas = document.createElement('canvas');
+  canvas.className = 'particle-canvas';
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  canvas.style.left = '0';
+  canvas.style.top = '0';
+  canvas.style.width = '100vw';
+  canvas.style.height = '100vh';
+  document.body.appendChild(canvas);
+  var ctx = canvas.getContext('2d');
+  var particles = [];
+  var count = 14;
+  // resolve CSS variable to hex
+  var resolvedColor = color;
+  if(color && color.startsWith('var(--')){
+    var varName = color.slice(4,-1);
+    resolvedColor = getComputedStyle(document.documentElement).getPropertyValue(varName).trim() || '#4ade80';
+  }
+  for(var i=0;i<count;i++){
+    var angle = (Math.PI*2/count)*i + (Math.random()-0.5)*0.4;
+    var speed = 2.5 + Math.random()*3.5;
+    var size = 3 + Math.random()*3;
+    var shapes = ['circle','square','star'];
+    particles.push({
+      x:cx, y:cy,
+      vx: Math.cos(angle)*speed,
+      vy: Math.sin(angle)*speed - 1.5,
+      ax:0, ay:0.18,
+      alpha:1, size:size,
+      color: resolvedColor,
+      shape: shapes[i%3],
+      rot: Math.random()*Math.PI*2,
+      rotV: (Math.random()-0.5)*0.3
+    });
+  }
+  var start = null;
+  function frame(ts){
+    if(!start)start=ts;
+    var elapsed=(ts-start)/1000;
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    var alive=false;
+    particles.forEach(function(p){
+      p.vx+=p.ax; p.vy+=p.ay;
+      p.x+=p.vx; p.y+=p.vy;
+      p.alpha=Math.max(0,1-elapsed/0.7);
+      p.rot+=p.rotV;
+      if(p.alpha>0){alive=true;}
+      ctx.save();
+      ctx.globalAlpha=p.alpha;
+      ctx.fillStyle=p.color;
+      ctx.translate(p.x,p.y);
+      ctx.rotate(p.rot);
+      if(p.shape==='circle'){
+        ctx.beginPath();ctx.arc(0,0,p.size/2,0,Math.PI*2);ctx.fill();
+      } else if(p.shape==='square'){
+        ctx.fillRect(-p.size/2,-p.size/2,p.size,p.size);
+      } else {
+        // star
+        ctx.beginPath();
+        for(var j=0;j<5;j++){
+          var a=j*Math.PI*2/5-Math.PI/2;
+          var ai=a+Math.PI/5;
+          ctx.lineTo(Math.cos(a)*p.size,Math.sin(a)*p.size);
+          ctx.lineTo(Math.cos(ai)*p.size*0.45,Math.sin(ai)*p.size*0.45);
+        }
+        ctx.closePath();ctx.fill();
+      }
+      ctx.restore();
+    });
+    if(alive) requestAnimationFrame(frame);
+    else canvas.remove();
+  }
+  requestAnimationFrame(frame);
+}
+
+/* ── SVG checkmark inject ── */
+var SVG_CHK = '<svg class="chk-svg" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 9.5L7.5 13L14 6" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+function toggleRule(id,e){
+  if(e){e.stopPropagation();e.preventDefault();}
+  done[id]=!done[id]; saveD(done);
+  var el=document.getElementById('ri-'+id); if(!el)return;
   var chk=el.querySelector('.rule-check');
   var lvlKey=id.split('_')[0];
   var lvl=DATA.find(function(l){return l.id.toLowerCase()===lvlKey;});
+  var color = lvl ? lvl.color : 'var(--a1)';
+
   if(done[id]){
-    el.classList.add('done','celebrate');
-    setTimeout(function(){el.classList.remove('celebrate');},400);
-    chk.textContent='✓';
-    if(lvl){chk.style.background=lvl.color;chk.style.borderColor=lvl.color;chk.style.color='#000';}
-  }else{
-    el.classList.remove('done');
-    chk.textContent='';chk.style.background='';chk.style.borderColor='var(--border2)';chk.style.color='';
+    // apply color
+    if(lvl){chk.style.background=color; chk.style.borderColor=color; chk.style.color='#000';}
+    // inject SVG checkmark (no text)
+    chk.textContent='';
+    chk.insertAdjacentHTML('beforeend', SVG_CHK);
+    // trigger checkmark draw + pulse
+    requestAnimationFrame(function(){
+      chk.classList.add('anim-check');
+    });
+    // rule glow slide
+    el.classList.remove('celebrate-enter');
+    el.classList.add('done');
+    requestAnimationFrame(function(){
+      el.classList.add('celebrate-enter');
+      setTimeout(function(){el.classList.remove('celebrate-enter');},900);
+    });
+    // particles
+    spawnParticles(chk, color);
+  } else {
+    el.classList.remove('done','celebrate-enter');
+    // uncheck wiggle
+    el.classList.add('uncheck-anim');
+    setTimeout(function(){el.classList.remove('uncheck-anim');},350);
+    chk.innerHTML='';
+    chk.style.background=''; chk.style.borderColor='var(--border2)'; chk.style.color='';
   }
-  updLvl(lvlKey);updAll();
+  updLvl(lvlKey); updAll();
 }
 
-function toggleExp(id,btn,e){
+function toggleExp(id,rule,e){
   if(e)e.stopPropagation();
   var el=document.getElementById('exp-'+id);if(!el)return;
   var open=el.classList.toggle('open');
+  const btn = rule.querySelector('.info-btn');
   btn.classList.toggle('open',open);
   btn.textContent=open?'▲ скрыть':'ℹ info';
 }
@@ -1220,12 +1394,12 @@ function renderAll(){
         var isDone=done[r.id];
         var ck=isDone?'background:'+lvl.color+';border-color:'+lvl.color+';color:#000':'border-color:var(--border2)';
         ch+='<div class="rule-item'+(isDone?' done':'')+'" id="ri-'+r.id+'">';
-        ch+='<div class="rule-top" onclick="toggleRule(\''+r.id+'\')">';
-        ch+='<div class="rule-check" style="'+ck+'">'+(isDone?'✓':'')+'</div>';
+        ch+='<div class="rule-top" onclick="toggleExp(\''+r.id+'\',this,event)">';
+        ch+='<div class="rule-check" onclick="toggleRule(\''+r.id+'\',event)" style="'+ck+'">'+(isDone?SVG_CHK:'')+'</div>';
         ch+='<div class="rule-main"><div class="rule-text">'+r.text+'</div>';
         if(r.note)ch+='<span class="rule-note">'+r.note+'</span>';
         ch+='</div>';
-        if(r.exp){ch+='<div class="rule-actions"><button class="info-btn" onclick="toggleExp(\''+r.id+'\',this,event)">ℹ info</button></div>';}
+        if(r.exp){ch+='<div class="rule-actions"><button class="info-btn">ℹ info</button></div>';}
         ch+='</div>';
         if(r.exp){
           ch+='<div class="rule-exp" id="exp-'+r.id+'">';
