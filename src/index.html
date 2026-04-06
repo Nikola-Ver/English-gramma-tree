@@ -3,8 +3,7 @@
 <html lang="ru"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>English Grammar Tree — A1→C2</title>
-<link href="./English Grammar Tree — A1→C2_files/css2" rel="stylesheet">
+<title>English Grammar Tree</title>
 <style>
 :root{
   --bg:#0d0f14;--bg2:#131620;--bg3:#1a1e2a;
@@ -27,6 +26,7 @@ body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(
 header{margin-bottom:2rem;}
 .header-top{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-bottom:1rem;}
 .header-container{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;}
+.title-block {display:flex;flex-direction:column;gap:16px;}
 .title-block h1{font-family:'DM Serif Display',serif;font-size:clamp(1.8rem,4.5vw,2.6rem);font-weight:400;line-height:1.1;letter-spacing:-0.02em;}
 .title-block h1 span{font-style:italic;color:var(--b2);}
 .title-block p{color:var(--muted2);font-size:13px;margin-top:6px;font-weight:300;line-height:1.5;}
@@ -40,7 +40,7 @@ header{margin-bottom:2rem;}
 .stat-chip strong{color:var(--text);font-weight:500;}
 
 /* Search */
-.search-wrap{position:relative;margin-bottom:1.5rem;}
+.search-wrap{position:relative;}
 .search-icon{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:14px;pointer-events:none;}
 .search-input{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:11px;padding:10px 14px 10px 38px;font-size:14px;color:var(--text);font-family:'Outfit',sans-serif;outline:none;transition:border-color 0.2s;}
 .search-input:focus{border-color:var(--border2);}
@@ -277,6 +277,10 @@ header{margin-bottom:2rem;}
   <div class="header-top">
     <div class="title-block">
       <h1>English <span>Grammar</span> Tree</h1>
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input class="search-input" type="text" placeholder="Поиск по теме..." id="search" oninput="doSearch(this.value)">
+      </div>
     </div>
     <div class="overall-progress">
       <div class="overall-num" id="total-done">0</div>
@@ -291,11 +295,6 @@ header{margin-bottom:2rem;}
     </button>
   </div>
 </header>
-
-<div class="search-wrap">
-  <span class="search-icon">🔍</span>
-  <input class="search-input" type="text" placeholder="Поиск по теме..." id="search" oninput="doSearch(this.value)">
-</div>
 
 <div class="level-path" id="level-path"></div>
 <div class="no-results" id="no-results" style="display:none">Ничего не найдено по запросу</div>
@@ -316,7 +315,7 @@ exp:`<strong>to be</strong> — самый важный глагол англи�
 <br><br>⚠️ Важное отличие от русского: в английском глагол <strong>нельзя пропустить</strong>. По-русски говорим «Я студент», а по-английски обязательно: <em>I <u>am</u> a student</em>.`,
 ex:[['I am hungry.','Я голоден.'],['She is a doctor.','Она врач.'],['They are ready.','Они готовы.'],['It is cold today.','Сегодня холодно.']],
 exc:'Сокращённые формы: I\'m, you\'re, he\'s, she\'s, it\'s, we\'re, they\'re. В кратких ответах сокращение запрещено: <em>Yes, I am.</em> (не ~~Yes, I\'m~~)',
-links:[['OK English: глагол to be (видео на рус.)','https://ok-english.ru/blue-murphy-videos/',YT],['Skyeng: упражнения','https://skyeng.ru/exercises/verb-to-be/',RU],['Perfect English Grammar','https://www.perfect-english-grammar.com/verb-be.html',EN],['native-english.ru: глагол to be','https://www.native-english.ru/grammar/verb-to-be',RU]]},
+links:[['OK English: глагол to be (видео на рус.)','https://ok-english.ru/video-free/',YT],['Skyeng: упражнения','https://skyeng.ru/exercises/to-be-present-simple/',RU],['Perfect English Grammar','https://www.perfect-english-grammar.com/verb-be.html',EN],['native-english.ru: глагол to be','https://www.native-english.ru/grammar/verb-to-be',RU]]},
 
 {id:'a1_02',text:"Отрицание: am not / isn't / aren't",note:"I'm not tired. He isn't here. They aren't ready.",
 exp:`Отрицание строится добавлением <em>not</em>: <em>am not, is not, are not</em>.
@@ -382,7 +381,7 @@ exp:`<strong>Present Simple</strong> используется для: привы
 ex:[['I drink coffee every morning.','Я пью кофе каждое утро.'],['She works in a hospital.','Она работает в больнице.'],['The Earth goes round the Sun.','Земля вращается вокруг Солнца.']],
 exc:'Исключения: <em>have → has, be → is, do → does, go → goes</em>',
 tip:'Маркеры времени: always, usually, often, sometimes, rarely, never, every day/week.',
-links:[['OK English: Present Simple (видео)','https://ok-english.ru/blue-murphy-videos/',YT],['Skyeng: упражнения','https://skyeng.ru/exercises/present-simple/',RU],['Perfect English Grammar','https://www.perfect-english-grammar.com/present-simple.html',EN],['native-english.ru: Present Simple','https://www.native-english.ru/grammar/present-simple',RU]]},
+links:[['OK English: Present Simple (видео)','https://ok-english.ru/video-free/',YT],['Skyeng: упражнения','https://skyeng.ru/exercises/present-simple/',RU],['Perfect English Grammar','https://www.perfect-english-grammar.com/present-simple.html',EN],['native-english.ru: Present Simple','https://www.native-english.ru/grammar/present-simple',RU]]},
 
 {id:'a1_09',text:"Present Simple — отрицание: don't / doesn't",note:"I don't like. He doesn't like. (не: he don't)",
 exp:`Отрицание строится с помощью вспомогательного глагола <em>do/does</em> + <em>not</em>:
@@ -556,7 +555,7 @@ exp:`<strong>Past Simple</strong> — завершённое действие в
 <br>• Одна гласная + одна согласная (краткий ударный слог): удвоить согласную → <em>stopped, planned</em>`,
 ex:[['She worked all day yesterday.','Она работала весь день вчера.'],['They played tennis last Sunday.','Они играли в теннис в прошлое воскресенье.']],
 tip:'Маркеры: yesterday, last week/year, ago, in 2010, at 5 o\'clock.',
-links:[['OK English: Past Simple (видео)','https://ok-english.ru/blue-murphy-videos/',YT],['engfairy: упражнения','https://engfairy.com/past-simple-tense-uprazhneniya/',RU],['Perfect English Grammar','https://www.perfect-english-grammar.com/past-simple.html',EN],['native-english.ru: Past Simple','https://www.native-english.ru/grammar/past-simple',RU]]},
+links:[['OK English: Past Simple (видео)','https://ok-english.ru/video-free/',YT],['engfairy: упражнения','https://engfairy.com/past-simple-tense-uprazhneniya/',RU],['Perfect English Grammar','https://www.perfect-english-grammar.com/past-simple.html',EN],['native-english.ru: Past Simple','https://www.native-english.ru/grammar/past-simple',RU]]},
 
 {id:'a2_02',text:'Past Simple — неправильные глаголы (таблица)',note:'go→went, see→saw, have→had, come→came, buy→bought',
 exp:`Около 200 неправильных глаголов нужно учить наизусть. Самые частотные 50 покрывают ~90% употреблений.
@@ -599,7 +598,7 @@ exp:`<em>will</em> используется для:
 <br>4. <strong>Просьб</strong>: <em>Will you open the window?</em>
 <br><br>Сокращение: <em>'ll</em>. Отрицание: <em>won't</em> (= will not).`,
 ex:[["The phone is ringing. — I'll get it!",'Телефон звонит. — Я отвечу!'],['It will be cold tomorrow.','Завтра будет холодно.']],
-links:[['OK English: will (видео)','https://ok-english.ru/blue-murphy-videos/',YT],['Will future','https://www.perfect-english-grammar.com/will-future.html',EN],['native-english.ru: shall/will','https://www.native-english.ru/grammar/modal-verb-shall-will',RU]]},
+links:[['OK English: will (видео)','https://ok-english.ru/video-free/',YT],['Will future','https://www.perfect-english-grammar.com/will-future.html',EN],['native-english.ru: shall/will','https://www.native-english.ru/grammar/modal-verb-shall-will',RU]]},
 
 {id:'a2_07',text:'going to — намерения и очевидные предсказания',note:"I'm going to visit Paris. Look out — you're going to fall!",
 exp:`<em>going to</em> используется для:
@@ -621,7 +620,7 @@ exp:`<strong>Present Continuous</strong> — действие, происход�
 <br>• Краткий ударный слог: удвоить последнюю согласную → <em>running, sitting</em>`,
 ex:[['I am studying English right now.','Я сейчас изучаю английский.'],["She's working from home this month.",'Она работает из дома в этом месяце.']],
 tip:'Маркеры: now, at the moment, currently, this week/month.',
-links:[['OK English: Present Continuous (видео)','https://ok-english.ru/blue-murphy-videos/',YT],['Skyeng упражнения','https://skyeng.ru/exercises/present-continuous/',RU],['Perfect English Grammar','https://www.perfect-english-grammar.com/present-continuous.html',EN],['native-english.ru: Present Continuous','https://www.native-english.ru/grammar/present-continuous',RU]]},
+links:[['OK English: Present Continuous (видео)','https://ok-english.ru/video-free/',YT],['Skyeng упражнения','https://skyeng.ru/exercises/present-continuous/',RU],['Perfect English Grammar','https://www.perfect-english-grammar.com/present-continuous.html',EN],['native-english.ru: Present Continuous','https://www.native-english.ru/grammar/present-continuous',RU]]},
 
 {id:'a2_09',text:'Present Continuous для запланированного будущего',note:"I'm meeting Tom tomorrow. We're flying to Rome on Friday.",
 exp:`Present Continuous используется для <strong>конкретных договорённостей</strong> в будущем — когда время и место уже определены.
@@ -806,7 +805,7 @@ exp:`<strong>Present Perfect</strong> = have/has + V3 (третья форма �
 <br><br>V3 правильных глаголов = Past Simple (worked, played). Неправильные нужно знать отдельно.`,
 ex:[['Have you ever eaten sushi?','Ты когда-нибудь ел суши?'],["I've just finished my homework.",'Я только что закончил домашнее задание.'],["She hasn't called yet.",'Она ещё не позвонила.']],
 tip:'Маркеры: ever, never, already, yet, just, recently, lately, so far.',
-links:[['OK English: Present Perfect (видео)','https://ok-english.ru/blue-murphy-videos/',YT],['Skyeng: упражнения PP','https://skyeng.ru/exercises/present-perfect-present-perfect-continuous/',RU],['Perfect English Grammar','https://www.perfect-english-grammar.com/present-perfect.html',EN],['native-english.ru: Present Perfect','https://www.native-english.ru/grammar/present-perfect',RU]]},
+links:[['OK English: Present Perfect (видео)','https://ok-english.ru/video-free/',YT],['Skyeng: упражнения PP','https://skyeng.ru/exercises/present-perfect-present-perfect-continuous/',RU],['Perfect English Grammar','https://www.perfect-english-grammar.com/present-perfect.html',EN],['native-english.ru: Present Perfect','https://www.native-english.ru/grammar/present-perfect',RU]]},
 
 {id:'b1_02',text:'ever / never / already / yet / just — маркеры Present Perfect',note:'Have you ever...? I\'ve never... I\'ve already... Not yet. I\'ve just...',
 exp:`<em>ever</em> — когда-нибудь (в вопросах об опыте). Место: перед V3.
@@ -825,7 +824,7 @@ exp:`Это одна из самых важных разниц в английс
 <br><em>I lost my wallet yesterday.</em> (вчера — конкретное время)
 <br><br>⚠️ С конкретными временными маркерами (yesterday, last week, in 2020, ago) → только Past Simple!`,
 ex:[["I've met the new director. (он сейчас здесь, это актуально)",'Я познакомился с новым директором.'],["I met him last Tuesday. (конкретное время)",'Я встретил его в прошлый вторник.']],
-links:[['OK English: PP vs Past Simple (видео)','https://ok-english.ru/blue-murphy-videos/',YT],['Skyeng: тест PP vs PS','https://skyeng.ru/testy-po-anglijskomu-yazyku/past-simple-ili-present-perfect/',RU],['Perfect English Grammar','https://www.perfect-english-grammar.com/present-perfect-or-past-simple.html',EN],['native-english.ru: Present Perfect','https://www.native-english.ru/grammar/present-perfect',RU]]},
+links:[['OK English: PP vs Past Simple (видео)','https://ok-english.ru/video-free/',YT],['Skyeng: тест PP vs PS','https://skyeng.ru/testy-po-anglijskomu-yazyku/past-simple-ili-present-perfect/',RU],['Perfect English Grammar','https://www.perfect-english-grammar.com/present-perfect-or-past-simple.html',EN],['native-english.ru: Present Perfect','https://www.native-english.ru/grammar/present-perfect',RU]]},
 
 {id:'b1_04',text:'Present Perfect с for и since',note:'I\'ve lived here for 5 years / since 2019.',
 exp:`<em>for</em> — продолжительность: <em>for two days, for a year, for a long time, for ages</em>
@@ -842,7 +841,7 @@ exp:`<strong>Present Perfect Continuous</strong> = have/has been + V-ing
 <br>• <em>I've read 50 pages.</em> — результат, завершённость
 <br>• <em>I've been reading all evening.</em> — акцент на процессе`,
 ex:[["I've been learning English for two years.",'Я учу английский уже два года.'],['Why are your hands dirty? — I\'ve been fixing the car.','Почему у тебя грязные руки? — Чинил машину.']],
-links:[['OK English: PPC (видео)','https://ok-english.ru/blue-murphy-videos/',YT],['Perfect English Grammar','https://www.perfect-english-grammar.com/present-perfect-continuous.html',EN],['native-english.ru: Present Perfect Continuous','https://www.native-english.ru/grammar/present-perfect-continuous',RU]]},
+links:[['OK English: PPC (видео)','https://ok-english.ru/video-free/',YT],['Perfect English Grammar','https://www.perfect-english-grammar.com/present-perfect-continuous.html',EN],['native-english.ru: Present Perfect Continuous','https://www.native-english.ru/grammar/present-perfect-continuous',RU]]},
 ]},
 
 {name:'Прошедшие времена',rules:[
@@ -853,7 +852,7 @@ exp:`<strong>Past Continuous</strong> = was/were + V-ing
 <br>2. <strong>Фоновое действие</strong>, прерванное другим: <em>I was walking when it started to rain.</em>
 <br>3. Параллельные действия: <em>While she was cooking, he was watching TV.</em>`,
 ex:[['It was raining when I left home.','Когда я выходил из дома, шёл дождь.'],['What were you doing at 7 yesterday?','Что ты делал вчера в 7?']],
-links:[['OK English: Past Continuous (видео)','https://ok-english.ru/blue-murphy-videos/',YT],['Perfect English Grammar','https://www.perfect-english-grammar.com/past-continuous.html',EN],['native-english.ru: Past Continuous','https://www.native-english.ru/grammar/past-continuous',RU]]},
+links:[['OK English: Past Continuous (видео)','https://ok-english.ru/video-free/',YT],['Perfect English Grammar','https://www.perfect-english-grammar.com/past-continuous.html',EN],['native-english.ru: Past Continuous','https://www.native-english.ru/grammar/past-continuous',RU]]},
 
 {id:'b1_07',text:'Past Simple vs Past Continuous — фон и событие',note:'While I was cooking, he called. I was walking when it started to rain.',
 exp:`Типичная конструкция: длинное фоновое действие (Past Continuous) + короткое событие (Past Simple).
@@ -879,7 +878,7 @@ exp:`Реальная, вероятная ситуация в будущем.
 <br><br>Вместо <em>will</em> в главной части можно: <em>can, may, might, should</em>.
 <br>Части можно поменять: <em>I'll stay home if it rains.</em> (без запятой)`,
 ex:[["If she studies hard, she'll pass the exam.",'Если она будет хорошо учиться, она сдаст экзамен.'],["If you need help, I can come.",'Если нужна помощь, я могу прийти.']],
-links:[['OK English: 1st conditional (видео)','https://ok-english.ru/blue-murphy-videos/',YT],['First conditional','https://www.perfect-english-grammar.com/first-conditional.html',EN],['native-english.ru: условные предложения','https://www.native-english.ru/grammar/conditional-sentences',RU]]},
+links:[['OK English: 1st conditional (видео)','https://ok-english.ru/video-free/',YT],['First conditional','https://www.perfect-english-grammar.com/first-conditional.html',EN],['native-english.ru: условные предложения','https://www.native-english.ru/grammar/conditional-sentences',RU]]},
 
 {id:'b1_10',text:'2-й тип: If + Past Simple, would — нереальное настоящее',note:'If I had a car, I would drive to work. If I were you...',
 exp:`Нереальная или маловероятная ситуация в настоящем или будущем.
@@ -887,7 +886,7 @@ exp:`Нереальная или маловероятная ситуация в 
 <br>⚠️ Глагол в <em>if</em>-части — Past Simple, но значение — <strong>настоящее/будущее</strong>!
 <br>⚠️ <em>were</em> используется для всех лиц: <em>If I were you, If she were here</em> — это стандарт формального языка.`,
 ex:[['If I won the lottery, I would travel the world.','Если бы я выиграл в лотерею, я бы объездил мир.'],["If I were taller, I'd play basketball.",'Если бы я был выше, я бы играл в баскетбол.']],
-links:[['OK English: 2nd conditional (видео)','https://ok-english.ru/blue-murphy-videos/',YT],['Second conditional','https://www.perfect-english-grammar.com/second-conditional.html',EN],['native-english.ru: условные предложения','https://www.native-english.ru/grammar/conditional-sentences',RU]]},
+links:[['OK English: 2nd conditional (видео)','https://ok-english.ru/video-free/',YT],['Second conditional','https://www.perfect-english-grammar.com/second-conditional.html',EN],['native-english.ru: условные предложения','https://www.native-english.ru/grammar/conditional-sentences',RU]]},
 
 {id:'b1_11',text:'1-й тип vs 2-й тип: реальное vs маловероятное',note:'If I win (1st, реально) vs If I won (2nd, вряд ли)',
 exp:`Выбор типа отражает <strong>твою уверенность</strong> в реальности ситуации.
@@ -906,7 +905,7 @@ exp:`<strong>Страдательный залог</strong> использует
 <br><br>Форма Present Simple Passive: <em>am/is/are + V3</em>
 <br>Исполнитель (если нужен) добавляется с <em>by</em>: <em>The window was broken by the ball.</em>`,
 ex:[['English is spoken in many countries.','На английском говорят во многих странах.'],['The letter is written in French.','Письмо написано по-французски.']],
-links:[['OK English: Passive Voice (видео)','https://ok-english.ru/blue-murphy-videos/',YT],['Passive Voice overview','https://www.perfect-english-grammar.com/passive.html',EN],['Skyeng упражнения','https://skyeng.ru/exercises/passive/',RU],['native-english.ru: пассивный залог','https://www.native-english.ru/grammar/passive-voice',RU]]},
+links:[['OK English: Passive Voice (видео)','https://ok-english.ru/video-free/',YT],['Passive Voice overview','https://www.perfect-english-grammar.com/passive.html',EN],['Skyeng упражнения','https://skyeng.ru/exercises/passive/',RU],['native-english.ru: пассивный залог','https://www.native-english.ru/grammar/passive-voice',RU]]},
 
 {id:'b1_13',text:'Passive Voice — Past Simple: was/were + V3',note:'The bridge was built in 1890. They were arrested.',
 exp:`Past Simple Passive: <em>was/were + V3</em>
@@ -931,7 +930,7 @@ exp:`При переводе в косвенную речь времена «с�
 <br>• Present Perfect → Past Perfect: <em>"I've seen" → he said he had seen</em>
 <br>• will → would; can → could; is → was; am going → was going`,
 ex:[["She said: 'I am leaving.' → She said she was leaving.",'Она сказала, что уходит.'],["He told me: 'I can't come.' → He told me he couldn't come.",'Он сказал, что не может прийти.']],
-links:[['OK English: Reported Speech (видео)','https://ok-english.ru/blue-murphy-videos/',YT],['Reported Speech','https://www.perfect-english-grammar.com/reported-speech.html',EN],['native-english.ru: косвенная речь','https://www.native-english.ru/grammar/indirect-speech',RU]]},
+links:[['OK English: Reported Speech (видео)','https://ok-english.ru/video-free/',YT],['Reported Speech','https://www.perfect-english-grammar.com/reported-speech.html',EN],['native-english.ru: косвенная речь','https://www.native-english.ru/grammar/indirect-speech',RU]]},
 
 {id:'b1_16',text:'Reported questions — косвенные вопросы',note:'"Where do you live?" → She asked where I lived.',
 exp:`В косвенных вопросах:
@@ -979,7 +978,7 @@ exp:`<em>used to</em> — регулярные действия или сост�
 <br><br>⚠️ Нет формы настоящего времени! Нельзя: ~~I use to~~ для настоящего.
 <br>Отличие от <em>be used to</em>: <em>I am used to waking up early</em> = я привык (сейчас).`,
 ex:[['I used to smoke, but I stopped.','Я раньше курил, но бросил.'],['Did you use to play an instrument?','Ты раньше играл на инструменте?']],
-links:[['OK English: used to (видео)','https://ok-english.ru/blue-murphy-videos/',YT],['Used to','https://www.perfect-english-grammar.com/used-to.html',EN],['native-english.ru: used to','https://www.native-english.ru/grammar/modal-verb-used-to',RU]]},
+links:[['OK English: used to (видео)','https://ok-english.ru/video-free/',YT],['Used to','https://www.perfect-english-grammar.com/used-to.html',EN],['native-english.ru: used to','https://www.native-english.ru/grammar/modal-verb-used-to',RU]]},
 ]},
 
 {name:'Придаточные предложения',rules:[
@@ -1056,7 +1055,7 @@ exp:`<strong>Past Perfect</strong> — действие, завершившее�
 <br>Вопрос: <em>Had + подлежащее + V3?</em>
 <br><br>Типичные союзы: <em>before, after, when, by the time, already, just, never</em>`,
 ex:[['When I arrived, she had already left.','Когда я приехал, она уже ушла.'],['He had never seen snow before that winter.','Он никогда раньше не видел снег до той зимы.']],
-links:[['OK English: Past Perfect (видео)','https://ok-english.ru/blue-murphy-videos/',YT],['Past Perfect','https://www.perfect-english-grammar.com/past-perfect.html',EN],['native-english.ru: Past Perfect','https://www.native-english.ru/grammar/past-perfect',RU]]},
+links:[['OK English: Past Perfect (видео)','https://ok-english.ru/video-free/',YT],['Past Perfect','https://www.perfect-english-grammar.com/past-perfect.html',EN],['native-english.ru: Past Perfect','https://www.native-english.ru/grammar/past-perfect',RU]]},
 
 {id:'b2_02',text:'Past Perfect Continuous: had been + V-ing',note:'He had been waiting for two hours when she arrived.',
 exp:`<strong>Past Perfect Continuous</strong> = had been + V-ing
@@ -1075,7 +1074,7 @@ exp:`<em>must have + V3</em> = я уверен, что это произошло
 <br>• <em>may/might have done</em> — возможно случилось
 <br>• <em>can't have done</em> — наверняка не случилось`,
 ex:[["You must have been exhausted after that journey.",'Ты, должно быть, очень устал после этой поездки.'],["She must have left early — her coat is gone.",'Она, видимо, ушла рано — её пальто пропало.']],
-links:[['OK English: модальные прошлого (видео)','https://ok-english.ru/blue-murphy-videos/',YT],['Modals of deduction past','https://www.perfect-english-grammar.com/modals-of-deduction-past.html',EN],['native-english.ru: модальные глаголы','https://www.native-english.ru/grammar/modal-verbs',RU]]},
+links:[['OK English: модальные прошлого (видео)','https://ok-english.ru/video-free/',YT],['Modals of deduction past','https://www.perfect-english-grammar.com/modals-of-deduction-past.html',EN],['native-english.ru: модальные глаголы','https://www.native-english.ru/grammar/modal-verbs',RU]]},
 
 {id:'b2_04',text:"can't have + V3 — невозможность в прошлом",note:"She can't have said that! He can't have been there.",
 exp:`<em>can't have + V3</em> = я уверен, что этого <strong>не произошло</strong> (это невозможно).
@@ -1105,7 +1104,7 @@ exp:`Нереальная ситуация в <strong>прошлом</strong> �
 <br>• Условие не выполнилось
 <br>• Результата тоже не было`,
 ex:[["If she had taken the medicine, she would have recovered.",'Если бы она приняла лекарство, она бы выздоровела.'],["If he hadn't left early, he would have met her.",'Если бы он не ушёл рано, он бы встретил её.']],
-links:[['OK English: 3rd conditional (видео)','https://ok-english.ru/blue-murphy-videos/',YT],['Third conditional','https://www.perfect-english-grammar.com/third-conditional.html',EN],['native-english.ru: условные предложения','https://www.native-english.ru/grammar/conditional-sentences',RU]]},
+links:[['OK English: 3rd conditional (видео)','https://ok-english.ru/video-free/',YT],['Third conditional','https://www.perfect-english-grammar.com/third-conditional.html',EN],['native-english.ru: условные предложения','https://www.native-english.ru/grammar/conditional-sentences',RU]]},
 
 {id:'b2_08',text:'Смешанные условные (mixed conditionals)',note:'If I had studied, I would be fluent now. (прошлое → настоящее)',
 exp:`Смешанные условные соединяют разные временные планы:
@@ -1170,7 +1169,7 @@ links:[['Stop/regret/mean','https://www.perfect-english-grammar.com/gerund-or-in
 exp:`<em>wish + Past Simple</em> — о нереальном желании в настоящем.
 <br>Форма такая же, как в 2-м типе условного. Для <em>to be</em> — <em>were</em> (формально), хотя <em>was</em> тоже используется.`,
 ex:[['I wish I spoke better English.','Жаль, что я не говорю по-английски лучше.'],['She wishes she lived in a warmer country.','Ей бы хотелось жить в более тёплой стране.']],
-links:[['OK English: wish (видео)','https://ok-english.ru/blue-murphy-videos/',YT],['Wish','https://www.perfect-english-grammar.com/wish.html',EN],['native-english.ru: сослагательное наклонение','https://www.native-english.ru/grammar/subjunctive-mood',RU]]},
+links:[['OK English: wish (видео)','https://ok-english.ru/video-free/',YT],['Wish','https://www.perfect-english-grammar.com/wish.html',EN],['native-english.ru: сослагательное наклонение','https://www.native-english.ru/grammar/subjunctive-mood',RU]]},
 
 {id:'b2_15',text:'wish + Past Perfect — сожаление о прошлом',note:'I wish I had studied harder. I wish I hadn\'t said that.',
 exp:`<em>wish + Past Perfect</em> — сожаление о прошлых событиях, которые уже нельзя изменить. Форма как в 3-м типе условного.`,
