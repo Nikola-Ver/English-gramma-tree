@@ -180,6 +180,10 @@ header{margin-bottom:2rem;}
 .exc-block strong{color:var(--c2);}
 .tip-block{margin-top:8px;padding:8px 10px;background:rgba(56,189,248,0.07);border-radius:6px;border-left:2px solid var(--b1);font-size:12px;color:var(--muted2);}
 .tip-block strong{color:var(--b1);}
+.mistakes-block{margin-top:8px;padding:8px 10px;background:rgba(244,114,182,0.07);border-radius:6px;border-left:2px solid var(--c1);font-size:12px;color:var(--muted2);}
+.mistakes-block strong{color:var(--c1);}
+.mistakes-block ul{margin:4px 0 0 14px;padding:0;list-style:disc;}
+.mistakes-block ul li{margin-bottom:3px;line-height:1.6;}
 
 /* Links */
 .link-row{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px;}
@@ -269,6 +273,49 @@ header{margin-bottom:2rem;}
 .reset-btn{background:none;border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:6px 14px;font-size:12px;cursor:pointer;font-family:'Outfit',sans-serif;transition:all 0.15s;margin-top:2rem;}
 .reset-btn:hover{border-color:var(--border2);color:var(--text);}
 .no-results{text-align:center;padding:3rem 1rem;color:var(--muted);}
+
+/* ── Tab navigation ── */
+.tabs{display:flex;gap:6px;margin-bottom:1.5rem;flex-wrap:wrap;}
+.tab-btn{background:var(--bg2);border:1px solid var(--border);border-radius:9px;padding:7px 16px;font-size:13px;color:var(--muted2);cursor:pointer;font-family:'Outfit',sans-serif;transition:all 0.18s;font-weight:400;}
+.tab-btn:hover{border-color:var(--border2);color:var(--text);}
+.tab-btn.active{background:rgba(129,140,248,0.12);border-color:var(--b2);color:var(--b2);font-weight:500;}
+.tab-pane{display:none;}
+.tab-pane.active{display:block;}
+
+/* ── Tense tree ── */
+.tense-tree{max-width:700px;margin:0 auto;}
+.tt-intro{font-size:14px;color:var(--muted2);margin-bottom:1.5rem;line-height:1.7;}
+.tt-intro strong{color:var(--text);}
+.tt-step{margin-bottom:1rem;}
+.tt-question{background:var(--bg2);border:1px solid var(--border2);border-radius:12px;padding:14px 16px;font-size:14px;color:var(--text);font-weight:500;margin-bottom:10px;display:flex;align-items:center;gap:10px;}
+.tt-question .tt-q-icon{font-size:18px;flex-shrink:0;}
+.tt-choices{display:flex;flex-direction:column;gap:6px;}
+.tt-choice{background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:10px 14px;font-size:13px;color:var(--muted2);cursor:pointer;transition:all 0.17s;display:flex;align-items:center;gap:10px;}
+.tt-choice:hover{border-color:var(--border2);color:var(--text);background:var(--bg2);}
+.tt-choice.selected{border-color:var(--b2);background:rgba(129,140,248,0.09);color:var(--text);}
+.tt-choice .choice-arrow{margin-left:auto;color:var(--muted);font-size:12px;flex-shrink:0;}
+.tt-result{background:var(--bg2);border:1px solid var(--border2);border-radius:13px;padding:18px;margin-top:8px;}
+.tt-result-name{font-size:17px;font-weight:600;color:var(--b2);margin-bottom:4px;font-family:'DM Serif Display',serif;font-style:italic;}
+.tt-result-formula{font-family:'DM Mono',monospace;font-size:12px;color:var(--muted2);background:var(--bg3);padding:5px 10px;border-radius:6px;display:inline-block;margin-bottom:10px;}
+.tt-result-desc{font-size:13px;color:var(--muted2);line-height:1.7;margin-bottom:10px;}
+.tt-result-ex{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:4px;}
+.tt-result-ex li{font-family:'DM Mono',monospace;font-size:12px;color:var(--muted2);padding:4px 9px;background:var(--bg3);border-radius:5px;}
+.tt-result-ex li .tr{color:var(--muted);font-style:italic;font-family:'Outfit',sans-serif;font-size:11px;display:block;}
+.tt-mistakes{margin-top:10px;padding:9px 11px;background:rgba(244,114,182,0.07);border-radius:7px;border-left:2px solid var(--c1);font-size:12px;color:var(--muted2);}
+.tt-mistakes strong{color:var(--c1);}
+.tt-restart{background:none;border:1px solid var(--border);color:var(--muted);border-radius:7px;padding:6px 14px;font-size:12px;cursor:pointer;font-family:'Outfit',sans-serif;transition:all 0.15s;margin-top:12px;display:block;}
+.tt-restart:hover{border-color:var(--border2);color:var(--text);}
+.tt-breadcrumb{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:14px;min-height:24px;}
+.tt-crumb{font-size:11px;color:var(--muted);background:var(--bg2);border:1px solid var(--border);padding:3px 9px;border-radius:20px;}
+.tt-crumb .sep{color:var(--border2);margin:0 4px;}
+.tt-all-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:1rem;}
+@media(max-width:520px){.tt-all-grid{grid-template-columns:1fr;}}
+.tt-card{background:var(--bg2);border:1px solid var(--border);border-radius:11px;padding:13px 14px;cursor:pointer;transition:all 0.17s;}
+.tt-card:hover{border-color:var(--border2);background:var(--bg3);}
+.tt-card-name{font-size:13px;font-weight:500;color:var(--text);margin-bottom:3px;}
+.tt-card-formula{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted2);}
+.tt-card-hint{font-size:11px;color:var(--muted);margin-top:3px;}
+.tt-section-title{font-size:11px;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);font-weight:600;margin:1rem 0 6px;}
 </style>
 </head>
 <body>
@@ -296,9 +343,20 @@ header{margin-bottom:2rem;}
   </div>
 </header>
 
+<div class="tabs">
+  <button class="tab-btn active" id="tab-grammar" onclick="switchTab('grammar')">📚 Грамматика</button>
+  <button class="tab-btn" id="tab-tenses" onclick="switchTab('tenses')">🕐 Дерево времён</button>
+</div>
+
+<div id="pane-grammar" class="tab-pane active">
 <div class="level-path" id="level-path"></div>
 <div class="no-results" id="no-results" style="display:none">Ничего не найдено по запросу</div>
 <button class="reset-btn" onclick="confirmReset()">↺ Сбросить прогресс</button>
+</div>
+
+<div id="pane-tenses" class="tab-pane">
+<div class="tense-tree" id="tense-tree-root"></div>
+</div>
 </div>
 
 <script>
@@ -1493,6 +1551,139 @@ links:[['Complex object','https://www.perfect-english-grammar.com/infinitives.ht
 ];
 
 var SK='eng_v3';
+
+/* ── Mistakes data patch ── */
+var MISTAKES={
+  a1_01:['~~She be a teacher~~ → She <em>is</em> a teacher','~~I is hungry~~ → I <em>am</em> hungry','Пропуск to be: ~~I student~~ → I <em>am</em> a student'],
+  a1_02:['~~I amn\'t tired~~ → I\'m <em>not</em> tired (amn\'t не существует!)','~~He don\'t tired~~ → He <em>isn\'t</em> tired','~~She is not = shes not~~ — только <em>she\'s not</em> или <em>she isn\'t</em>'],
+  a1_03:['~~Is you cold?~~ → <em>Are</em> you cold?','~~She is late?~~ — вопрос без инверсии: <em>Is she late?</em>','~~Where he is?~~ → Where <em>is he?</em>'],
+  a1_04:['~~Yes, I\'m~~ → Yes, I <em>am</em> (нельзя сокращать в утвердительном ответе)','~~No, she is\'nt~~ → No, she <em>isn\'t</em>'],
+  a1_05:['~~an university~~ → <em>a</em> university (звук [j])','~~a apple~~ → <em>an</em> apple','~~a honest man~~ → <em>an</em> honest man (h немая)'],
+  a1_06:['~~I like the music~~ → I like music (общий смысл — без артикля)','~~The life is short~~ → Life is short','~~He is the doctor~~ → He is <em>a</em> doctor (первое упоминание)'],
+  a1_07:['~~I play the tennis~~ → I play tennis','~~She speaks the Spanish~~ → She speaks Spanish','~~the Russia~~ → Russia (страны без артикля, кроме The USA, The UK)'],
+  a1_08:['~~She work~~ → She <em>works</em> (забыли -s для 3 лица)','~~He go~~ → He <em>goes</em> (go → goes)','~~She studys~~ → She <em>studies</em> (согласная + y → ies)'],
+  a1_09:['~~She doesn\'t likes~~ → She doesn\'t <em>like</em> (после doesn\'t — базовая форма!)','~~He don\'t work~~ → He <em>doesn\'t</em> work','~~I not like~~ → I <em>don\'t</em> like'],
+  a1_10:['~~Does she likes?~~ → Does she <em>like?</em>','~~Do he work?~~ → <em>Does</em> he work?','~~Where she lives?~~ → Where does she live?'],
+  a1_11:['~~I am knowing~~ → I <em>know</em>','~~She is loving him~~ → She <em>loves</em> him','~~He is wanting a coffee~~ → He <em>wants</em> a coffee'],
+  a1_12:['~~Is cold today~~ → <em>It</em> is cold (нельзя опустить подлежащее)','~~Me like pizza~~ → <em>I</em> like pizza','~~She told to him~~ → She told <em>him</em>'],
+  a1_13:['~~Its a big house~~ → <em>It\'s</em> a big house (it\'s = it is)','~~The cat hurt it\'s paw~~ → hurt <em>its</em> paw (its = принадлежность)','~~Their friends is nice~~ → Their friends <em>are</em> nice'],
+  a1_14:['~~two childs~~ → two <em>children</em>','~~three mans~~ → three <em>men</em>','~~boxs~~ → <em>boxes</em> (добавляем -es)'],
+  a1_15:['~~These is my pen~~ → <em>This</em> is my pen','~~Those are that books~~ → Those are <em>those/the</em> books','~~That book over here~~ — <em>this</em> (рядом), <em>that</em> (далеко)'],
+  a2_01:['~~She is going to school every day~~ → She <em>goes</em> (привычка = Present Simple)','~~I am going to the cinema tomorrow~~ — возможно, но <em>I\'m going to see a film</em> точнее с намерением','~~He is wanting~~ → He <em>wants</em> (stative verb)'],
+  a2_02:['~~She goed~~ → She <em>went</em>','~~I buyed~~ → I <em>bought</em>','~~They didn\'t went~~ → They didn\'t <em>go</em> (после did — базовая форма)'],
+  a2_03:['~~Did she played?~~ → Did she <em>play</em>?','~~She didn\'t came~~ → She didn\'t <em>come</em>','~~What he did?~~ → What <em>did he do?</em>'],
+  a2_04:['~~I will to go~~ → I <em>will go</em> (без to)','~~She wills come~~ → She will come (will не изменяется)','~~I think she go tomorrow~~ → she <em>will go</em>'],
+  a2_05:['~~I am going to will do~~ — только одно: <em>I\'m going to do</em>','~~She is going to does~~ → she is going to <em>do</em>','~~He gonna do~~ — разговорная форма, в письменной неприемлема'],
+  a2_06:['~~Can you to help me?~~ → Can you <em>help</em> (без to)','~~She cans do it~~ → She <em>can</em> do it (can не изменяется)','~~I can to speak French~~ → I can speak French'],
+  a2_07:['~~May I to open?~~ → May I open (без to после may)','~~He may to be right~~ → He may be right','~~I might go or not go~~ — нельзя использовать два модальных'],
+  a2_08:['~~I was visit~~ → I was <em>visiting</em>','~~She were working~~ → She <em>was</em> working (she/he/it → was)','~~At 8 I was work~~ → I was <em>working</em>'],
+  a2_09:['~~I\'m meeting Tom in next week~~ → meeting Tom <em>next week</em> (без in)','~~We are flying to Rome on the Friday~~ → on <em>Friday</em>'],
+  a2_10:['~~I am drink coffee every morning~~ → I <em>drink</em> (привычка)','~~She knowing French~~ → She <em>knows</em> French','~~Water is boiling at 100°C~~ → Water <em>boils</em> (факт)'],
+  a2_11:['~~You should to see a doctor~~ → should <em>see</em> (без to)','~~She should goes~~ → She should <em>go</em>','~~I should have went~~ → I should have <em>gone</em>'],
+  a2_12:['~~You mustn\'t to smoke~~ → mustn\'t <em>smoke</em>','~~I must to do this~~ → I <em>must</em> do this (без to)','~~You mustn\'t come~~ ≠ "тебе не нужно" — это "тебе нельзя!" Для "не нужно": <em>don\'t have to</em>'],
+  a2_13:['~~I have to can do this~~ — нельзя два модальных подряд','~~She doesn\'t have to don\'t come~~ → She <em>doesn\'t have to</em> come','~~You must not to come~~ → mustn\'t come'],
+  a2_14:['~~She could to swim~~ → She could <em>swim</em> (без to)','~~Can I when I was a child~~ → <em>I could</em> when I was a child','~~Could you to speak slowly?~~ → Could you speak slowly?'],
+  a2_15:['~~She is more tall than~~ → She is <em>taller</em> than','~~He is more better~~ → He is <em>better</em>','~~She is tallest in class~~ → She is <em>the</em> tallest'],
+  a2_16:['~~He is most clever~~ → He is <em>the most</em> clever / <em>the cleverest</em>','~~She is the most best~~ → She is <em>the best</em>','~~This is most interesting film~~ → <em>the most interesting</em> film (нужен the)'],
+  a2_17:['~~I have some money? (вопрос)~~ → Do I have <em>any</em> money?','~~I don\'t have some cash~~ → I don\'t have <em>any</em> cash','~~Would you like any tea?~~ → Would you like <em>some</em> tea? (предложение)'],
+  a2_18:['~~Much people~~ → <em>Many</em> people (счисляемое)','~~Many money~~ → <em>Much</em> money (несчисляемое)','~~A few water~~ → <em>A little</em> water'],
+  a2_19:['~~Two advices~~ → Two pieces of <em>advice</em> (advice несчисляемое)','~~An information~~ → <em>Some information</em>','~~Three furnitures~~ → Three pieces of <em>furniture</em>'],
+  a2_20:['~~at Monday~~ → <em>on</em> Monday','~~in 8 o\'clock~~ → <em>at</em> 8 o\'clock','~~on the morning~~ → <em>in</em> the morning','~~in my birthday~~ → <em>on</em> my birthday'],
+  a2_21:['~~I\'ve been here since three years~~ → for three years','~~I saw him since Monday~~ → I saw him <em>on</em> Monday (ago с Past Simple, не since!)','~~Three days before~~ → Three days <em>ago</em>'],
+  a2_22:['~~It\'s cold, isn\'t he?~~ → isn\'t <em>it</em>','~~She can swim, can\'t he?~~ → can\'t <em>she</em>','~~You don\'t like it, don\'t you?~~ → <em>do</em> you? (отрицательное предложение → положительный хвостик)'],
+  a2_23:['~~I\'ve got a car in 2010~~ → I <em>bought</em> a car in 2010 (have got только настоящее)','~~She had got a dog~~ → She <em>had</em> a dog (прошлое — только had)'],
+  a2_24:['~~She sings beautiful~~ → She sings <em>beautifully</em>','~~He works hardly~~ → He works <em>hard</em> (hardly = едва)','~~She drives fastly~~ → She drives <em>fast</em>'],
+  a2_25:['~~She always is late~~ → She is <em>always</em> late (after to be)','~~He drinks always coffee~~ → He <em>always</em> drinks coffee (перед основным глаголом)','~~She has never been always on time~~ — два наречия вместе неуместны'],
+  a2_26:['~~a wooden French old small bag~~ → порядок: размер → возраст → происхождение → материал','~~a beautiful Italian big car~~ → big <em>beautiful</em> Italian car (размер перед мнением — нет)'],
+  b1_01:['~~I have seen him yesterday~~ → I <em>saw</em> him yesterday (вчера = Past Simple!)','~~She has went~~ → She has <em>gone</em>','~~I have been to Rome last year~~ → I <em>went</em> to Rome last year'],
+  b1_02:['~~Have you ever been to Paris yet?~~ → <em>ever</em> в вопросе, <em>yet</em> в конце','~~I\'ve already not finished~~ → I <em>haven\'t</em> finished <em>yet</em>','~~I just have eaten~~ → I <em>have just</em> eaten (just перед V3)'],
+  b1_03:['~~I have seen him last week~~ → I <em>saw</em> him last week (конкретное время = Past Simple)','~~Did you ever eat sushi?~~ → <em>Have</em> you ever eaten sushi?','~~I met him and he has told me~~ → he <em>told</em> me (в одном контексте прошлого)'],
+  b1_04:['~~I\'ve lived here since five years~~ → <em>for</em> five years','~~She\'s known him for 2019~~ → she\'s known him <em>since</em> 2019','~~How long did you live here?~~ → How long <em>have</em> you lived here? (продолжается сейчас)'],
+  b1_05:['~~I\'ve been learning since three hours~~ → <em>for</em> three hours','~~I\'ve been read all evening~~ → I\'ve been <em>reading</em>','~~I\'ve been know her for years~~ → know — stative verb, используем Present Perfect Simple'],
+  b1_06:['~~She was walk~~ → She was <em>walking</em>','~~They was talking~~ → They <em>were</em> talking','~~I was work at 9pm~~ → I was <em>working</em>'],
+  b1_07:['~~While I cooked, he called~~ → While I <em>was cooking</em>, he called (фон = Continuous)','~~I was walking when it was starting to rain~~ → when it <em>started</em> (событие = Past Simple)'],
+  b1_08:['~~If you heat water, it will boil~~ → it <em>boils</em> (нулевой тип — Present + Present)','~~When you mix them, you will get~~ → you <em>get</em>'],
+  b1_09:['~~If it will rain~~ → If it <em>rains</em> (в if-части НЕТ will!)','~~If she will study hard, she passes~~ → If she studies, she <em>will pass</em>'],
+  b1_10:['~~If I would have a car~~ → If I <em>had</em> a car','~~If I was you~~ → If I <em>were</em> you (формально)','~~I would can do it~~ → I <em>could</em> do it (нельзя два модальных)'],
+  b1_11:['Путаница 1-го и 2-го типа: <em>If I win</em> (реально) vs <em>If I won</em> (маловероятно)','~~If I won, I will buy~~ → нельзя смешивать: <em>would buy</em>'],
+  b1_12:['~~Coffee is grew in Brazil~~ → Coffee is <em>grown</em>','~~The letter wrote in French~~ → The letter <em>is written</em>','~~English spoke here~~ → English <em>is spoken</em>'],
+  b1_13:['~~The bridge was build in 1890~~ → was <em>built</em>','~~They was arrested~~ → They <em>were</em> arrested','~~The car stolen~~ → The car <em>was</em> stolen'],
+  b1_14:['~~The project has been complete~~ → has been <em>completed</em>','~~It have been sent~~ → It <em>has</em> been sent','~~All guests have been inform~~ → have been <em>informed</em>'],
+  b1_15:['~~He said he is tired~~ → He said he <em>was</em> tired (сдвиг времени)','~~She told that she was late~~ → She told <em>me/us/him</em> that... (tell требует объект)','~~He said me that~~ → He <em>told me</em> that / He <em>said</em> that'],
+  b1_16:['~~She asked where do I live~~ → she asked where I <em>lived</em> (нет инверсии!)','~~He asked me what was I doing~~ → what I <em>was doing</em>','~~She asked if was I tired~~ → if I <em>was</em> tired'],
+  b1_17:['~~He told that he was late~~ → He <em>said</em> that / He <em>told me</em> that','~~She said me the news~~ → She <em>told</em> me the news','~~They told about the problem~~ → They <em>talked</em> about it / <em>said</em> something about it'],
+  b1_18:['~~I enjoy to swim~~ → I enjoy <em>swimming</em>','~~She finished to write~~ → She finished <em>writing</em>','~~He avoided to make~~ → He avoided <em>making</em>'],
+  b1_19:['~~She decided going~~ → She decided <em>to go</em>','~~He wants going out~~ → He wants <em>to go</em> out','~~I hope seeing you~~ → I hope <em>to see</em> you'],
+  b1_20:['~~I\'d like cooking tonight~~ → I\'d like <em>to cook</em> tonight (конкретный случай)','~~She started to working~~ → She started <em>working</em> или <em>to work</em>'],
+  b1_21:['~~I use to play football~~ → I <em>used to</em> play','~~Did you used to...?~~ → Did you <em>use to</em>...? (после did — базовая форма)','~~I used to living there~~ → I used to <em>live</em> (инфинитив без to+ing)'],
+  b1_22:['~~The man which called~~ → the man <em>who</em> called (who для людей)','~~The place who we met~~ → the place <em>where</em> we met','~~The girl who\'s bag~~ → the girl <em>whose</em> bag'],
+  b1_23:['~~Despite it was raining~~ → Despite <em>the rain</em> / Despite <em>raining</em> (существительное/герундий!)','~~Although the rain, we went~~ → Although <em>it was raining</em> (although + предложение)'],
+  b1_24:['~~I\'ll be work at 9~~ → I\'ll be <em>working</em>','~~She will working~~ → She <em>will be working</em>'],
+  b1_25:['~~By Friday I will finish~~ → I <em>will have finished</em> (завершится к сроку = Future Perfect)','~~I\'ll have finish by Sunday~~ → I\'ll have <em>finished</em>'],
+  b1_26:['~~I study hard for passing~~ → I study hard <em>to pass</em>','~~She left early for that she could catch the train~~ → <em>so that</em> she could','~~In order to not upset him~~ → <em>in order not to</em> upset him'],
+  b1_27:['~~She gave up to smoke~~ → She gave up <em>smoking</em>','~~I looked up the word in~~ → I looked <em>it</em> up (местоимение между глаголом и частицей)'],
+  b2_01:['~~When I arrived, she already left~~ → she <em>had already left</em>','~~He had never see snow~~ → He had never <em>seen</em> snow','~~I had went~~ → I had <em>gone</em>'],
+  b2_02:['~~She was exhausted — she had been work~~ → she had been <em>working</em>','~~How long had you waiting?~~ → How long had you <em>been waiting</em>?'],
+  b2_03:['~~She must forgot~~ → She must <em>have forgotten</em>','~~He must have leave early~~ → He must have <em>left</em>','~~You must be exhausted yesterday~~ — для прошлого: <em>must have been</em>'],
+  b2_04:['~~She can\'t forgot that~~ → She can\'t <em>have forgotten</em>','~~He couldn\'t have been there~~ — это правильно! can\'t have = невозможность; couldn\'t have = возможность'],
+  b2_05:['~~I should called her~~ → I should <em>have called</em>','~~She shouldn\'t have went~~ → She shouldn\'t have <em>gone</em>','~~You should have study~~ → You should have <em>studied</em>'],
+  b2_06:['~~She might forgot~~ → She might <em>have forgotten</em>','~~He could have win~~ → He could have <em>won</em>'],
+  b2_07:['~~If I studied harder, I would have passed~~ → If I <em>had studied</em>... (3-й тип — Past Perfect!)','~~If she had taken medicine, she would recovered~~ → she would <em>have recovered</em>'],
+  b2_08:['~~If I had studied, I would be fluent yesterday~~ — смешанный тип о прошлом→настоящему, не прошлому','~~If she were careful, she didn\'t break it~~ → she <em>wouldn\'t have broken</em> it'],
+  b2_09:['~~The report will published~~ → will <em>be</em> published','~~It must done~~ → It must <em>be done</em>','~~It should be do~~ → It should be <em>done</em>'],
+  b2_10:['~~I cut my hair at the hairdresser~~ → I <em>had</em> my hair cut','~~She got her car to fix~~ → She got her car <em>fixed</em>'],
+  b2_11:['~~It is said that prices will risen~~ → will <em>rise</em>','~~He is believed to being honest~~ → He is believed <em>to be</em> honest'],
+  b2_12:['~~I remember to lock it~~ (если факт прошлого) → I remember <em>locking</em> it','~~Remember locking it!~~ (задача) → Remember <em>to lock</em> it!','~~I forgot doing the homework~~ (если не сделал) → I forgot <em>to do</em> the homework'],
+  b2_13:['~~She stopped to smoke~~ (если бросила) → She stopped <em>smoking</em>','~~She stopped smoking to answer~~ (остановилась чтобы) → She stopped <em>to answer</em>'],
+  b2_14:['~~I wish I know the answer~~ → I wish I <em>knew</em>','~~I wish I was taller~~ — возможно, но формально: <em>I wish I were taller</em>','~~I wish I would know~~ — с would только о других: <em>I wish you would listen</em>'],
+  b2_15:['~~I wish I didn\'t say that~~ → I wish I <em>hadn\'t said</em> (сожаление о прошлом = Past Perfect)','~~I wish she had took that job~~ → she had <em>taken</em>'],
+  b2_16:['~~I wish I would stop~~ (о себе) → нельзя! Используй: <em>I wish I could stop</em>','~~I wish you stop talking~~ → I wish you <em>would stop</em>'],
+  b2_17:['~~My brother, that called, is a doctor~~ → My brother, <em>who</em> called (в неопределяющем нельзя that)','~~The man who lives next door, is very kind~~ → без запятой (определяющее придаточное)'],
+  b2_18:['~~The house which I grew up in it~~ → лишнее <em>it</em>','~~The person which I spoke~~ → the person I spoke <em>to</em>'],
+  b2_19:['~~It was so cold that we stayed~~ — правильно! Но: ~~It was such cold that~~ → It was such <em>a cold day</em>','~~Such was great his relief~~ → So great was his relief (с прилагательным — so)'],
+  b2_20:['~~I\'m used to wake up early~~ → I\'m used to <em>waking</em> up (be used to + V-ing)','~~I get used to woke up~~ → I get used to <em>waking</em> up'],
+  c1_01:['~~Never I have seen~~ → Never <em>have I seen</em> (инверсия: вспомогательный перед подлежащим)','~~Rarely she complains~~ → Rarely <em>does she</em> complain'],
+  c1_02:['~~Not only he apologised~~ → Not only <em>did he</em> apologise','~~Not only she is talented but also is hardworking~~ → but <em>she</em> is also hardworking (вторая часть — обычный порядок)'],
+  c1_03:['~~Hardly I had sat~~ → Hardly <em>had I</em> sat','~~No sooner I sat than~~ → No sooner <em>had I sat</em> than'],
+  c1_04:['~~Have I known, I would have helped~~ → <em>Had</em> I known','~~Should you need help, please to call~~ → please <em>call</em> (без to после please)'],
+  c1_05:['~~It was John who he called~~ → It was John who called (лишнее he)','~~It was the noise which woke me~~ — правильно, но <em>that</em> предпочтительнее для вещей'],
+  c1_06:['~~What I love it is London~~ → What I love <em>is</em> London (лишнее it)','~~What surprised me were the price~~ → What surprised me <em>was</em> the price (ед. число)'],
+  c1_07:['~~I suggest that he leaves~~ → I suggest that he <em>leave</em> (сослагательное — без -s!)','~~It is essential that she is informed~~ → that she <em>be</em> informed'],
+  c1_08:['~~It\'s high time you will go~~ → It\'s high time you <em>went</em> (Past Simple!)','~~It\'s high time for you go~~ → It\'s high time <em>you went</em>'],
+  c1_09:['~~She talks as if she knows everything~~ (нереальная ситуация) → as if she <em>knew</em>','~~He looked as if he seen a ghost~~ → as if he <em>had seen</em>'],
+  c1_10:['~~So I do~~ → <em>So do I</em> (вспомогательный перед подлежащим)','~~Neither she does~~ → <em>Neither does she</em>','~~I love jazz. So she does too~~ → <em>So does she</em>'],
+  c1_11:['~~I think so not~~ → I don\'t think so','~~I hope so not~~ → I hope <em>not</em>'],
+  c1_12:['~~The film that won the Oscar, was brilliant~~ → без запятой (определяющее придаточное)','~~Avatar, that came out in 2009~~ → Avatar, <em>which</em> came out (в неопределяющем нельзя that!)'],
+  c1_13:['~~The company which I work for it~~ → лишнее it','~~The person who I spoke~~ → the person I spoke <em>to</em> / to <em>whom</em> I spoke'],
+  c1_14:['~~I made a decision to expand~~ → корректно, но стиль слабее: <em>Our decision to expand</em> (номинализация)','~~Он discovered an error~~ → His <em>discovery of</em> the error'],
+  c1_15:['~~There was a significantly increase~~ → a <em>significant</em> increase (прилагательное перед существительным)','~~The prices\' increase~~ → <em>The increase in prices</em>'],
+  c1_16:['~~Walking down the street, the rain started~~ → субъект оборота ≠ подлежащее. Правильно: <em>Walking down the street, I got wet.</em>','~~Knowing the answer, her hand was raised~~ → субъект должен совпадать: <em>Knowing the answer, she raised her hand.</em>'],
+  c1_17:['~~Having read the report, the meeting was called~~ → кто читал? Должно быть: <em>Having read the report, he called a meeting.</em>','~~Surprised by the news, she was sat down~~ → она сама: <em>she sat down</em>'],
+  c2_01:['~~Unless you don\'t study~~ → Unless you study (unless = if not, двойное отрицание ненужно)','~~As long as you\'ll be honest~~ → As long as you <em>are</em> honest'],
+  c2_02:['~~Suppose you would win~~ → Suppose you <em>won</em> (Past Simple для гипотезы)'],
+  c2_03:['~~Only when I left, I realised~~ → Only when I left <em>did I</em> realise (инверсия!)','~~Only after years of practice, she mastered~~ → ... <em>did she master</em>'],
+  c2_04:['~~So great his relief was that~~ → So great <em>was</em> his relief','~~Such great was her talent~~ → Such <em>was</em> her talent / <em>So great was</em> her talent'],
+  c2_05:['~~Prices appear rising~~ → Prices appear <em>to be rising</em>','~~Results seem suggest~~ → Results seem <em>to suggest</em>'],
+  c2_06:['Путаница furthermore/moreover — оба добавляют, но moreover сильнее','~~Conversely, this shows the same~~ — conversely вводит контраст, не подтверждение'],
+  c2_07:['Смешение регистров: формальное начало и разговорное окончание в одном тексте','~~I would like to ask about this thing~~ → <em>this matter</em> (формальный регистр)'],
+  c2_08:['~~She is very thin~~ (нейтрально) vs намеренное <em>slim</em> (+) или <em>skinny</em> (−)','Использование слова с неверной коннотацией при комплименте: <em>stubborn</em> вместо <em>determined</em>'],
+  c2_09:['Использование анафоры без параллельной структуры — нарушает ритм','Триколон с неравными элементами: "fast, efficiently, with great care" → "fast, efficient, and careful"'],
+  c2_10:['~~make research~~ → <em>conduct/carry out</em> research','~~do a conclusion~~ → <em>draw/reach</em> a conclusion','~~make an issue~~ → <em>raise/address</em> an issue'],
+  c2_11:['~~Weather permitting, the picnic will be had by us~~ → избыточный пассив','~~Her eyes filling with tears, she left~~ — допустимо, но <em>Her eyes filled</em> точнее для завершённого факта'],
+  c2_12:['~~I wanted to go but didn\'t want to~~ → <em>but didn\'t</em> (опускаем want to)','~~She said she\'d call and she said~~ → <em>and she did</em> (замещение через do)'],
+  c2_13:['~~I saw her to leave~~ → I saw her <em>leave</em> (после see без to)','~~She was made to leave~~ — правильно! В пассиве — с to','~~I want that she stays~~ → I want <em>her to stay</em>']
+};
+
+/* Patch mistakes into rules */
+(function(){
+  DATA.forEach(function(lvl){
+    lvl.categories.forEach(function(cat){
+      cat.rules.forEach(function(r){
+        if(MISTAKES[r.id]) r.mistakes=MISTAKES[r.id];
+      });
+    });
+  });
+})();
 function loadD(){try{return JSON.parse(localStorage.getItem(SK)||'{}')}catch(e){return{}}}
 function saveD(d){localStorage.setItem(SK,JSON.stringify(d))}
 var done=loadD();
@@ -1792,6 +1983,11 @@ function renderAll(){
           }
           if(r.exc)ch+='<div class="exc-block"><strong>⚠️ Исключения:</strong> '+r.exc+'</div>';
           if(r.tip)ch+='<div class="tip-block"><strong>💡 Совет:</strong> '+r.tip+'</div>';
+          if(r.mistakes&&r.mistakes.length){
+            ch+='<div class="mistakes-block"><strong>🚫 Типичные ошибки:</strong><ul>';
+            r.mistakes.forEach(function(m){ch+='<li>'+m+'</li>';});
+            ch+='</ul></div>';
+          }
           if(r.links&&r.links.length){
             ch+='<div class="link-row">';
             r.links.forEach(function(l){
@@ -1921,6 +2117,197 @@ function globalTestPrompt(){
 }
 
 function confirmReset(){if(confirm('Сбросить весь прогресс?')){done={};saveD(done);renderAll();}}
+
+/* ── Tab switching ── */
+function switchTab(name){
+  ['grammar','tenses'].forEach(function(t){
+    document.getElementById('tab-'+t).classList.toggle('active',t===name);
+    document.getElementById('pane-'+t).classList.toggle('active',t===name);
+  });
+  if(name==='tenses') renderTenseTree();
+}
+
+/* ── Tense Tree ── */
+var TENSES={
+  present_simple:{name:'Present Simple',formula:'V / V+s(es)',color:'#4ade80',
+    desc:'Регулярные действия, привычки, факты и расписания.',
+    markers:'always, usually, often, sometimes, rarely, never, every day/week',
+    examples:[['She drinks coffee every morning.','Она пьёт кофе каждое утро.'],['The sun rises in the east.','Солнце встаёт на востоке.']],
+    mistakes:['~~She work~~ → She <em>works</em>','~~Do she likes?~~ → Does she like?','~~I not like~~ → I <em>don\'t</em> like']},
+  present_continuous:{name:'Present Continuous',formula:'am/is/are + V-ing',color:'#34d399',
+    desc:'Действие прямо сейчас или временная ситуация. Также конкретные планы на будущее.',
+    markers:'now, at the moment, currently, this week, tomorrow (for plans)',
+    examples:[['I\'m studying English right now.','Я сейчас изучаю английский.'],['She\'s meeting Tom tomorrow.','Она встречается с Томом завтра.']],
+    mistakes:['~~I am knowing~~ → stative verbs не употребляются в Continuous','~~She is working usually~~ → She <em>usually works</em> (привычка = PS)']},
+  past_simple:{name:'Past Simple',formula:'V2 / did + V',color:'#38bdf8',
+    desc:'Завершённое действие в прошлом. Всегда с конкретным временем или подразумеваемым моментом.',
+    markers:'yesterday, last week, in 2020, ago, then, when',
+    examples:[['I saw her yesterday.','Я видел её вчера.'],['She went to Paris in 2022.','Она ездила в Париж в 2022 году.']],
+    mistakes:['~~I goed~~ → I <em>went</em>','~~I didn\'t went~~ → I didn\'t <em>go</em>','~~I have seen him yesterday~~ → I <em>saw</em> him yesterday']},
+  past_continuous:{name:'Past Continuous',formula:'was/were + V-ing',color:'#818cf8',
+    desc:'Действие в процессе в момент прошлого. Фоновое действие, прерванное другим.',
+    markers:'at 8pm yesterday, while, when (с Past Simple)',
+    examples:[['I was reading when she called.','Я читал, когда она позвонила.'],['While he was cooking, she was working.','Пока он готовил, она работала.']],
+    mistakes:['~~She were working~~ → She <em>was</em> working','~~I was work~~ → I was <em>working</em>']},
+  present_perfect:{name:'Present Perfect',formula:'have/has + V3',color:'#f472b6',
+    desc:'Действие в прошлом с результатом в настоящем. Жизненный опыт. Незавершённое действие с for/since.',
+    markers:'ever, never, already, yet, just, recently, for, since, so far',
+    examples:[['I\'ve lost my keys.','Я потерял ключи (они сейчас не найдены).'],['Have you ever been to Japan?','Ты когда-нибудь был в Японии?']],
+    mistakes:['~~I have seen him yesterday~~ → I <em>saw</em> him yesterday','~~She has went~~ → She has <em>gone</em>','~~I\'ve lived here since five years~~ → <em>for</em> five years']},
+  present_perfect_continuous:{name:'Present Perfect Continuous',formula:'have/has been + V-ing',color:'#fb923c',
+    desc:'Акцент на продолжительности или незавершённости действия, начавшегося в прошлом.',
+    markers:'for, since, how long, all day/morning',
+    examples:[["I\'ve been learning English for two years.",'Я учу английский уже два года.'],['Why are you tired? — I\'ve been running.','Почему ты устал? — Бегал.']],
+    mistakes:['~~I\'ve been know~~ → stative verbs не в Continuous','~~I\'ve been learning since two years~~ → <em>for</em> two years']},
+  past_perfect:{name:'Past Perfect',formula:'had + V3',color:'#34d399',
+    desc:'Действие, завершившееся до другого момента в прошлом.',
+    markers:'by the time, before, after, already, just, when + Past Simple',
+    examples:[['When I arrived, she had already left.','Когда я приехал, она уже ушла.'],['He had never seen snow before that winter.','До той зимы он никогда не видел снег.']],
+    mistakes:['~~When I arrived, she already left~~ → she <em>had</em> already left','~~He had never see~~ → He had never <em>seen</em>']},
+  past_perfect_continuous:{name:'Past Perfect Continuous',formula:'had been + V-ing',color:'#4ade80',
+    desc:'Продолжительность действия до момента в прошлом. Объясняет причину или видимый результат в прошлом.',
+    markers:'for, since, how long, before ... arrived',
+    examples:[["She was exhausted — she\'d been working all night.",'Она была измотана — всю ночь работала.'],['How long had you been waiting?','Как долго ты ждал?']],
+    mistakes:['~~She had been work~~ → She had been <em>working</em>','~~How long had you waiting?~~ → had you <em>been waiting</em>']},
+  future_will:{name:'Future Simple (will)',formula:'will + V',color:'#38bdf8',
+    desc:'Предсказания, спонтанные решения, обещания, факты о будущем.',
+    markers:'tomorrow, next week, in 2030, soon, probably',
+    examples:[['I\'ll help you!','Я помогу тебе! (спонтанное решение)'],['She will probably be late.','Она, вероятно, опоздает.']],
+    mistakes:['~~I will to go~~ → I will <em>go</em>','~~She wills come~~ → She will come']},
+  future_going_to:{name:'Future (be going to)',formula:'am/is/are going to + V',color:'#818cf8',
+    desc:'Запланированные намерения или предсказания на основе видимых признаков.',
+    markers:'планы, признаки в настоящем',
+    examples:[['I\'m going to study medicine.','Я собираюсь изучать медицину. (план)'],['Look at those clouds — it\'s going to rain!','Смотри на тучи — сейчас пойдёт дождь!']],
+    mistakes:['~~She is going to does~~ → She is going to <em>do</em>','~~I am going to will do~~ — нельзя два будущих']},
+  future_continuous:{name:'Future Continuous',formula:'will be + V-ing',color:'#f472b6',
+    desc:'Действие, которое будет в процессе в конкретный момент будущего.',
+    markers:'at this time tomorrow, this time next week, at 8pm tomorrow',
+    examples:[['This time tomorrow I\'ll be lying on the beach.','В это время завтра я буду лежать на пляже.'],['Don\'t call at 8 — I\'ll be having dinner.','Не звони в 8 — я буду ужинать.']],
+    mistakes:['~~I\'ll be work at 9~~ → I\'ll be <em>working</em>','~~She will working~~ → She <em>will be working</em>']},
+  future_perfect:{name:'Future Perfect',formula:'will have + V3',color:'#fb923c',
+    desc:'Действие, которое завершится до определённого момента в будущем.',
+    markers:'by (the time), before, by Sunday/Friday',
+    examples:[["I\'ll have finished by Sunday.",'К воскресенью я закончу.'],['By 2030 they will have built the bridge.','К 2030 году они построят мост.']],
+    mistakes:['~~By Friday I will finish~~ → I will <em>have finished</em>','~~I\'ll have finish~~ → I\'ll have <em>finished</em>']}
+};
+
+var ttState={path:[],node:'start'};
+
+var TENSE_TREE={
+  start:{q:'Когда происходит действие?',choices:[
+    {label:'Настоящее / постоянное',icon:'🔵',next:'present'},
+    {label:'Прошлое',icon:'🟣',next:'past'},
+    {label:'Будущее',icon:'🟢',next:'future'}
+  ]},
+  present:{q:'Что именно ты хочешь выразить?',choices:[
+    {label:'Привычка, факт, расписание',icon:'📅',result:'present_simple'},
+    {label:'Действие прямо сейчас или временно',icon:'⏱️',next:'present_now'},
+    {label:'Связь с настоящим: опыт/результат',icon:'🔗',next:'present_perfect_branch'}
+  ]},
+  present_now:{q:'Это постоянное состояние или процесс прямо сейчас?',choices:[
+    {label:'Постоянное (знаю, люблю, хочу...)',icon:'💭',result:'present_simple'},
+    {label:'Процесс сейчас / временно',icon:'⚡',result:'present_continuous'}
+  ]},
+  present_perfect_branch:{q:'Важна продолжительность или сам факт?',choices:[
+    {label:'Сам факт / результат / опыт',icon:'✅',result:'present_perfect'},
+    {label:'Продолжительность ("как долго")',icon:'⏳',result:'present_perfect_continuous'}
+  ]},
+  past:{q:'Что ты хочешь выразить о прошлом?',choices:[
+    {label:'Завершённое действие (конкретное время)',icon:'📌',result:'past_simple'},
+    {label:'Действие в процессе / фон',icon:'🌊',result:'past_continuous'},
+    {label:'Действие до другого прошлого события',icon:'⏪',next:'past_perfect_branch'}
+  ]},
+  past_perfect_branch:{q:'Нужно подчеркнуть продолжительность?',choices:[
+    {label:'Нет — просто факт завершения',icon:'✔️',result:'past_perfect'},
+    {label:'Да — как долго шло до момента',icon:'⏳',result:'past_perfect_continuous'}
+  ]},
+  future:{q:'Как ты выражаешь будущее?',choices:[
+    {label:'Спонтанное решение / обещание / предсказание',icon:'💡',result:'future_will'},
+    {label:'Заранее запланировано / есть признаки',icon:'📝',result:'future_going_to'},
+    {label:'Будет в процессе в момент будущего',icon:'⏱️',result:'future_continuous'},
+    {label:'Завершится до момента в будущем',icon:'✅',result:'future_perfect'}
+  ]}
+};
+
+function renderTenseTree(){
+  var root=document.getElementById('tense-tree-root');
+  if(!root)return;
+  var html='<div class="tt-intro"><strong>Интерактивное дерево выбора времени.</strong> Отвечай на вопросы — получишь нужное время с формулой, примерами и типичными ошибками.</div>';
+  html+='<div class="tt-breadcrumb" id="tt-crumbs"></div>';
+  html+='<div id="tt-steps"></div>';
+  html+='<div class="tt-section-title" style="margin-top:2rem">— или выбери сразу —</div>';
+  html+='<div class="tt-all-grid">';
+  Object.keys(TENSES).forEach(function(k){
+    var t=TENSES[k];
+    html+='<div class="tt-card" onclick="showTenseResult(\''+k+'\',true)"><div class="tt-card-name" style="color:'+t.color+'">'+t.name+'</div><div class="tt-card-formula">'+t.formula+'</div><div class="tt-card-hint">'+t.desc.substring(0,60)+'...</div></div>';
+  });
+  html+='</div>';
+  root.innerHTML=html;
+  ttState={path:[],node:'start'};
+  renderTTStep();
+}
+
+function renderTTStep(){
+  var steps=document.getElementById('tt-steps');if(!steps)return;
+  var node=TENSE_TREE[ttState.node];
+  if(!node){steps.innerHTML='';return;}
+  var html='<div class="tt-step"><div class="tt-question"><span class="tt-q-icon">❓</span>'+node.q+'</div><div class="tt-choices">';
+  node.choices.forEach(function(c,i){
+    html+='<div class="tt-choice" onclick="ttChoose('+i+')"><span>'+c.icon+'</span><span>'+c.label+'</span><span class="choice-arrow">›</span></div>';
+  });
+  html+='</div></div>';
+  steps.innerHTML=html;
+  renderTTCrumbs();
+}
+
+function ttChoose(i){
+  var node=TENSE_TREE[ttState.node];if(!node)return;
+  var c=node.choices[i];
+  ttState.path.push({q:node.q,a:c.label});
+  if(c.result){
+    showTenseResult(c.result,false);
+  } else {
+    ttState.node=c.next;
+    renderTTStep();
+  }
+}
+
+function showTenseResult(key,direct){
+  var t=TENSES[key];if(!t)return;
+  var steps=document.getElementById('tt-steps');if(!steps)return;
+  var html='<div class="tt-result">';
+  html+='<div class="tt-result-name" style="color:'+t.color+'">'+t.name+'</div>';
+  html+='<div class="tt-result-formula">'+t.formula+'</div>';
+  html+='<div class="tt-result-desc">'+t.desc+'</div>';
+  if(t.markers) html+='<div style="font-size:11px;color:var(--muted);margin-bottom:8px;">⏱ Маркеры: <em>'+t.markers+'</em></div>';
+  html+='<ul class="tt-result-ex">';
+  t.examples.forEach(function(e){html+='<li>'+e[0]+(e[1]?'<span class="tr">'+e[1]+'</span>':'')+'</li>';});
+  html+='</ul>';
+  if(t.mistakes&&t.mistakes.length){
+    html+='<div class="tt-mistakes"><strong>🚫 Типичные ошибки:</strong><ul style="margin:4px 0 0 14px;padding:0;list-style:disc;">';
+    t.mistakes.forEach(function(m){html+='<li style="margin-bottom:3px;line-height:1.6;">'+m+'</li>';});
+    html+='</ul></div>';
+  }
+  html+='<button class="tt-restart" onclick="ttRestart()">↺ Начать сначала</button>';
+  html+='</div>';
+  steps.innerHTML=html;
+  if(!direct) renderTTCrumbs();
+}
+
+function ttRestart(){
+  ttState={path:[],node:'start'};
+  renderTTStep();
+}
+
+function renderTTCrumbs(){
+  var el=document.getElementById('tt-crumbs');if(!el)return;
+  if(!ttState.path.length){el.innerHTML='';return;}
+  var html=ttState.path.map(function(p){
+    return '<span class="tt-crumb">'+p.a+'</span>';
+  }).join('<span style="color:var(--muted);font-size:11px;padding:0 2px">›</span>');
+  el.innerHTML=html;
+}
+
 renderAll();
 </script>
 </body>
