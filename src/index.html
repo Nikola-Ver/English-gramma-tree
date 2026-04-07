@@ -288,18 +288,22 @@ header{margin-bottom:2rem;}
 .tab-pane.active{display:block;}
 
 /* ── Tense tree ── */
-.tense-tree{max-width:700px;margin:0 auto;}
+.tense-tree{max-width:100%;margin:0;}
 .tt-intro{font-size:14px;color:var(--muted2);margin-bottom:1.5rem;line-height:1.7;}
 .tt-intro strong{color:var(--text);}
 .tt-step{margin-bottom:1rem;}
 .tt-question{background:var(--bg2);border:1px solid var(--border2);border-radius:12px;padding:14px 16px;font-size:14px;color:var(--text);font-weight:500;margin-bottom:10px;display:flex;align-items:center;gap:10px;}
 .tt-question .tt-q-icon{font-size:18px;flex-shrink:0;}
-.tt-choices{display:flex;flex-direction:column;gap:6px;}
+.tt-choices{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+@media(max-width:560px){.tt-choices{grid-template-columns:1fr;}}
 .tt-choice{background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:10px 14px;font-size:13px;color:var(--muted2);cursor:pointer;transition:all 0.17s;display:flex;align-items:center;gap:10px;}
 .tt-choice:hover{border-color:var(--border2);color:var(--text);background:var(--bg2);}
 .tt-choice.selected{border-color:var(--b2);background:rgba(129,140,248,0.09);color:var(--text);}
 .tt-choice .choice-arrow{margin-left:auto;color:var(--muted);font-size:12px;flex-shrink:0;}
-.tt-result{background:var(--bg2);border:1px solid var(--border2);border-radius:13px;padding:18px;margin-top:8px;}
+.tt-result{background:var(--bg2);border:1px solid var(--border2);border-radius:13px;padding:18px;margin-top:8px;display:grid;grid-template-columns:1fr 1fr;gap:0 24px;align-items:start;}
+.tt-result-left{grid-column:1;}
+.tt-result-right{grid-column:2;}
+@media(max-width:600px){.tt-result{grid-template-columns:1fr;}.tt-result-left,.tt-result-right{grid-column:1;}}
 .tt-result-name{font-size:17px;font-weight:600;color:var(--b2);margin-bottom:4px;font-family:'DM Serif Display',serif;font-style:italic;}
 .tt-result-formula{font-family:'DM Mono',monospace;font-size:12px;color:var(--muted2);background:var(--bg3);padding:5px 10px;border-radius:6px;display:inline-block;margin-bottom:10px;}
 .tt-result-desc{font-size:13px;color:var(--muted2);line-height:1.7;margin-bottom:10px;}
@@ -313,14 +317,27 @@ header{margin-bottom:2rem;}
 .tt-breadcrumb{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:14px;min-height:24px;}
 .tt-crumb{font-size:11px;color:var(--muted);background:var(--bg2);border:1px solid var(--border);padding:3px 9px;border-radius:20px;}
 .tt-crumb .sep{color:var(--border2);margin:0 4px;}
-.tt-all-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:1rem;}
-@media(max-width:520px){.tt-all-grid{grid-template-columns:1fr;}}
+.tt-all-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:1rem;}
+@media(max-width:700px){.tt-all-grid{grid-template-columns:1fr 1fr;}}
+@media(max-width:420px){.tt-all-grid{grid-template-columns:1fr;}}
 .tt-card{background:var(--bg2);border:1px solid var(--border);border-radius:11px;padding:13px 14px;cursor:pointer;transition:all 0.17s;}
 .tt-card:hover{border-color:var(--border2);background:var(--bg3);}
+.tt-card.active{box-shadow:0 0 0 1px currentColor;}
 .tt-card-name{font-size:13px;font-weight:500;color:var(--text);margin-bottom:3px;}
 .tt-card-formula{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted2);}
 .tt-card-hint{font-size:11px;color:var(--muted);margin-top:3px;}
 .tt-section-title{font-size:11px;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);font-weight:600;margin:1rem 0 6px;}
+/* Timeline chart */
+.tt-timeline-wrap{margin:1.5rem 0 0;background:var(--bg2);border:1px solid var(--border);border-radius:13px;padding:18px 16px 14px;overflow:hidden;}
+.tt-timeline-title{font-size:11px;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);font-weight:600;margin-bottom:14px;}
+.tt-timeline-canvas{width:100%;display:block;cursor:pointer;}
+.tt-timeline-legend{display:flex;flex-wrap:wrap;gap:8px 16px;margin-top:12px;}
+.tt-tl-leg-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted2);cursor:pointer;transition:opacity 0.15s;}
+.tt-tl-leg-item:hover{color:var(--text);}
+.tt-tl-leg-dot{width:10px;height:10px;border-radius:2px;flex-shrink:0;}
+.tt-timeline-tooltip{position:fixed;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:8px 12px;font-size:12px;color:var(--text);pointer-events:none;z-index:999;display:none;max-width:220px;line-height:1.5;}
+.tt-timeline-tooltip .ttt-name{font-weight:600;margin-bottom:2px;}
+.tt-timeline-tooltip .ttt-desc{color:var(--muted2);font-size:11px;}
 </style>
 </head>
 <body>
@@ -2280,6 +2297,7 @@ var TENSES={
 };
 
 var ttState={path:[],node:'start'};
+var selectedTenseKey=null;
 
 var TENSE_TREE={
   start:{q:'Когда происходит действие?',choices:[
@@ -2320,20 +2338,275 @@ var TENSE_TREE={
 function renderTenseTree(){
   var root=document.getElementById('tense-tree-root');
   if(!root)return;
-  var html='<div class="tt-intro"><strong>Интерактивное дерево выбора времени.</strong> Отвечай на вопросы — получишь нужное время с формулой, примерами и типичными ошибками.</div>';
+
+  // Timeline FIRST
+  var html='<div class="tt-timeline-wrap">';
+  html+='<div class="tt-timeline-title">📊 Шкала времени — когда происходит действие</div>';
+  html+='<canvas class="tt-timeline-canvas" id="tt-canvas" height="400"></canvas>';
+  html+='<div class="tt-timeline-legend" id="tt-legend"></div>';
+  html+='</div>';
+  html+='<div class="tt-timeline-tooltip" id="tt-tooltip"></div>';
+
+  // Intro + tree below
+  html+='<div class="tt-intro" style="margin-top:1.25rem"><strong>Интерактивное дерево выбора времени.</strong> Отвечай на вопросы — получишь нужное время с формулой, примерами и типичными ошибками.</div>';
   html+='<div class="tt-breadcrumb" id="tt-crumbs"></div>';
   html+='<div id="tt-steps"></div>';
+
   html+='<div class="tt-section-title" style="margin-top:2rem">— или выбери сразу —</div>';
   html+='<div class="tt-all-grid">';
   Object.keys(TENSES).forEach(function(k){
     var t=TENSES[k];
-    html+='<div class="tt-card" onclick="showTenseResult(\''+k+'\',true)"><div class="tt-card-name" style="color:'+t.color+'">'+t.name+'</div><div class="tt-card-formula">'+t.formula+'</div><div class="tt-card-hint">'+t.desc.substring(0,60)+'...</div></div>';
+    html+='<div class="tt-card" id="ttcard-'+k+'" onclick="showTenseResult(\''+k+'\',true)"><div class="tt-card-name" style="color:'+t.color+'">'+t.name+'</div><div class="tt-card-formula">'+t.formula+'</div><div class="tt-card-hint">'+t.desc.substring(0,60)+'...</div></div>';
   });
   html+='</div>';
   root.innerHTML=html;
   ttState={path:[],node:'start'};
+  selectedTenseKey=null;
   renderTTStep();
+  requestAnimationFrame(function(){ drawTimeline(); });
 }
+
+/* ── Timeline data ──
+   Each tense: row, start, end on a -10..+10 axis (0=now, negative=past, positive=future)
+   type: 'bar'=duration, 'point'=instant, 'arrow'=open-ended
+   solid: true=certain, false=ongoing/open
+   anchor: optional dot position for "moment of speech"
+*/
+var TL_DATA=[
+  // PRESENT
+  {key:'present_simple',      label:'Present Simple',     color:'#4ade80', row:0,  start:-10, end:10,   type:'arrow',  desc:'Повторяющееся/постоянное действие — всегда'},
+  {key:'present_continuous',  label:'Pres. Continuous',   color:'#34d399', row:1,  start:-0.5,end:0.5,  type:'bar',    desc:'Действие в процессе прямо сейчас'},
+  {key:'present_perfect',     label:'Present Perfect',    color:'#f472b6', row:2,  start:-6,  end:0,    type:'bar',    dotEnd:true, desc:'Действие в прошлом → результат сейчас'},
+  {key:'present_perfect_continuous', label:'PP Continuous',color:'#fb923c',row:3,  start:-6,  end:0,    type:'bar',    dotEnd:false,desc:'Действие началось в прошлом и продолжается'},
+  // PAST
+  {key:'past_simple',         label:'Past Simple',        color:'#38bdf8', row:4,  start:-5,  end:-4.5, type:'point',  desc:'Завершённое действие в конкретный момент прошлого'},
+  {key:'past_continuous',     label:'Past Continuous',    color:'#818cf8', row:5,  start:-7,  end:-3,   type:'bar',    desc:'Длительное фоновое действие в прошлом'},
+  {key:'past_perfect',        label:'Past Perfect',       color:'#34d399', row:6,  start:-9,  end:-5,   type:'bar',    dotEnd:true, desc:'Завершилось ДО другого события в прошлом'},
+  {key:'past_perfect_continuous',label:'PP Cont.',         color:'#4ade80', row:7,  start:-9,  end:-5,   type:'bar',    dotEnd:false,desc:'Длилось до момента в прошлом'},
+  // FUTURE
+  {key:'future_will',         label:'Future (will)',      color:'#38bdf8', row:8,  start:2,   end:2.5,  type:'point',  desc:'Решение/предсказание о будущем'},
+  {key:'future_going_to',     label:'Going to',           color:'#818cf8', row:9,  start:1,   end:4,    type:'bar',    desc:'Запланированное намерение'},
+  {key:'future_continuous',   label:'Future Continuous',  color:'#f472b6', row:10, start:3,   end:6,    type:'bar',    desc:'Действие будет в процессе в момент будущего'},
+  {key:'future_perfect',      label:'Future Perfect',     color:'#fb923c', row:11, start:1,   end:5,    type:'bar',    dotEnd:true, desc:'Завершится ДО момента в будущем'},
+];
+
+function drawTimeline(){
+  var canvas=document.getElementById('tt-canvas');
+  if(!canvas)return;
+  var dpr=window.devicePixelRatio||1;
+  var W=canvas.parentElement.clientWidth - 32;
+  var ROW_H=28, ROWS=TL_DATA.length;
+  var PAD_L=130, PAD_R=24, PAD_T=36, PAD_B=28;
+  var H=PAD_T + ROWS*ROW_H + PAD_B;
+  canvas.width=W*dpr; canvas.height=H*dpr;
+  canvas.style.width=W+'px'; canvas.style.height=H+'px';
+  var ctx=canvas.getContext('2d');
+  ctx.scale(dpr,dpr);
+
+  // Resolve CSS vars
+  var cs=getComputedStyle(document.documentElement);
+  var C_BG3   = cs.getPropertyValue('--bg3').trim()||'#1a1e2a';
+  var C_BORDER= cs.getPropertyValue('--border2').trim()||'rgba(255,255,255,0.13)';
+  var C_MUTED = cs.getPropertyValue('--muted').trim()||'#6b7080';
+  var C_MUTED2= cs.getPropertyValue('--muted2').trim()||'#8b92a8';
+  var C_TEXT  = cs.getPropertyValue('--text').trim()||'#e8eaf0';
+  var C_BG2   = cs.getPropertyValue('--bg2').trim()||'#131620';
+
+  var AXIS_MIN=-10, AXIS_MAX=10;
+  function xOf(v){ return PAD_L + (v-AXIS_MIN)/(AXIS_MAX-AXIS_MIN)*(W-PAD_L-PAD_R); }
+  var nowX=xOf(0);
+
+  // Background
+  ctx.fillStyle=C_BG2; ctx.fillRect(0,0,W,H);
+
+  // Grid lines + labels
+  var ticks=[-10,-8,-6,-4,-2,0,2,4,6,8,10];
+  ticks.forEach(function(t){
+    var x=xOf(t);
+    ctx.strokeStyle=t===0?'rgba(255,255,255,0.18)':'rgba(255,255,255,0.05)';
+    ctx.lineWidth=t===0?1.5:1;
+    ctx.beginPath(); ctx.moveTo(x,PAD_T-14); ctx.lineTo(x,PAD_T+ROWS*ROW_H); ctx.stroke();
+    ctx.fillStyle=t===0?C_MUTED2:C_MUTED;
+    ctx.font=(t===0?'600 ':'')+'10px Outfit,sans-serif';
+    ctx.textAlign='center';
+    var lbl=t===0?'СЕЙЧАС':(t<0?(Math.abs(t)+' в прошлом'):(t+' в будущем'));
+    if(t===0||t===-10||t===10||t===-5||t===5) ctx.fillText(lbl,x,PAD_T-4);
+  });
+
+  // Section backgrounds
+  var pastEnd=xOf(0)-1, futureStart=xOf(0)+1;
+  ctx.fillStyle='rgba(56,189,248,0.03)'; ctx.fillRect(PAD_L,PAD_T,pastEnd-PAD_L,ROWS*ROW_H);
+  ctx.fillStyle='rgba(74,222,128,0.03)'; ctx.fillRect(futureStart,PAD_T,W-PAD_R-futureStart,ROWS*ROW_H);
+
+  // Section labels
+  ctx.font='10px Outfit,sans-serif'; ctx.textAlign='center'; ctx.fillStyle=C_MUTED;
+  ctx.fillText('← ПРОШЛОЕ', PAD_L+(pastEnd-PAD_L)/2, PAD_T-4);
+  ctx.fillText('БУДУЩЕЕ →', futureStart+(W-PAD_R-futureStart)/2, PAD_T-4);
+
+  // Rows
+  TL_DATA.forEach(function(d,i){
+    var y=PAD_T + i*ROW_H + ROW_H/2;
+    var x1=xOf(d.start), x2=xOf(d.end);
+    var col=d.color;
+    var isSelected = selectedTenseKey === d.key;
+    var isAnySelected = !!selectedTenseKey;
+    var dimmed = isAnySelected && !isSelected;
+
+    // Row highlight background for selected
+    if(isSelected){
+      ctx.save();
+      ctx.fillStyle=col;
+      ctx.globalAlpha=0.07;
+      ctx.fillRect(0, PAD_T+i*ROW_H, W, ROW_H);
+      ctx.restore();
+      // Left accent bar
+      ctx.save();
+      ctx.fillStyle=col;
+      ctx.globalAlpha=0.9;
+      ctx.fillRect(0, PAD_T+i*ROW_H+3, 3, ROW_H-6);
+      ctx.restore();
+    } else {
+      // Subtle stripe
+      ctx.fillStyle=i%2===0?'rgba(255,255,255,0.01)':'transparent';
+      ctx.fillRect(PAD_L, PAD_T+i*ROW_H, W-PAD_L-PAD_R, ROW_H);
+    }
+
+    ctx.save();
+    ctx.globalAlpha = dimmed ? 0.2 : 1;
+
+    // Label
+    ctx.font = isSelected ? 'bold 11.5px Outfit,sans-serif' : '11px Outfit,sans-serif';
+    ctx.textAlign='right';
+    ctx.fillStyle = isSelected ? col : C_MUTED2;
+    ctx.fillText(d.label, PAD_L-8, y+4);
+
+    if(d.type==='point'){
+      // Diamond
+      ctx.fillStyle=col; ctx.strokeStyle=col;
+      ctx.beginPath();
+      var ds = isSelected ? 9 : 7;
+      ctx.moveTo(x1, y-ds); ctx.lineTo(x1+ds, y); ctx.lineTo(x1, y+ds); ctx.lineTo(x1-ds, y); ctx.closePath();
+      ctx.fill();
+      if(isSelected){
+        ctx.strokeStyle=col; ctx.lineWidth=1.5; ctx.globalAlpha=0.35;
+        ctx.beginPath(); ctx.arc(x1,y,14,0,Math.PI*2); ctx.stroke();
+        ctx.globalAlpha=1;
+      }
+      // Dashed line full span
+      ctx.save(); ctx.strokeStyle=col; ctx.globalAlpha=0.25; ctx.lineWidth=1.5;
+      ctx.setLineDash([3,4]);
+      ctx.beginPath(); ctx.moveTo(PAD_L,y); ctx.lineTo(W-PAD_R,y); ctx.stroke();
+      ctx.setLineDash([]); ctx.restore();
+    } else if(d.type==='arrow'){
+      var bh = isSelected ? 10 : 8;
+      ctx.save(); ctx.globalAlpha= isSelected ? 0.28 : 0.18;
+      ctx.fillStyle=col;
+      ctx.beginPath();
+      ctx.roundRect(PAD_L, y-bh/2, W-PAD_L-PAD_R, bh, 3);
+      ctx.fill(); ctx.restore();
+      // Arrow tips
+      ctx.strokeStyle=col; ctx.lineWidth= isSelected ? 2.5 : 2; ctx.globalAlpha= isSelected ? 1 : 0.7;
+      ctx.beginPath(); ctx.moveTo(PAD_L+6,y-5); ctx.lineTo(PAD_L,y); ctx.lineTo(PAD_L+6,y+5); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(W-PAD_R-6,y-5); ctx.lineTo(W-PAD_R,y); ctx.lineTo(W-PAD_R-6,y+5); ctx.stroke();
+      ctx.globalAlpha=1;
+    } else {
+      var bh = isSelected ? 13 : 10;
+      ctx.save(); ctx.globalAlpha= isSelected ? 0.3 : 0.22;
+      ctx.fillStyle=col;
+      ctx.beginPath(); ctx.roundRect(x1,y-bh/2,x2-x1,bh,3); ctx.fill(); ctx.restore();
+      // Solid line
+      ctx.strokeStyle=col; ctx.lineWidth= isSelected ? 3.5 : 2.5;
+      ctx.beginPath(); ctx.moveTo(x1,y); ctx.lineTo(x2,y); ctx.stroke();
+      // Start cap
+      var capR = isSelected ? 5 : 4;
+      ctx.fillStyle=col;
+      ctx.beginPath(); ctx.arc(x1,y,capR,0,Math.PI*2); ctx.fill();
+      if(d.dotEnd===false){
+        ctx.strokeStyle=col; ctx.lineWidth= isSelected ? 2.5 : 2;
+        ctx.beginPath(); ctx.moveTo(x2-6,y-5); ctx.lineTo(x2,y); ctx.lineTo(x2-6,y+5); ctx.stroke();
+        var grad=ctx.createLinearGradient(x2-20,0,x2,0);
+        grad.addColorStop(0,col+'00'); grad.addColorStop(1,col+'88');
+        ctx.strokeStyle=grad; ctx.lineWidth=2;
+        ctx.beginPath(); ctx.moveTo(x2-18,y); ctx.lineTo(x2-1,y); ctx.stroke();
+      } else {
+        ctx.fillStyle=col;
+        ctx.beginPath(); ctx.arc(x2,y,capR,0,Math.PI*2); ctx.fill();
+        if(d.dotEnd===true){
+          ctx.strokeStyle=col; ctx.lineWidth= isSelected ? 2 : 1.5;
+          ctx.globalAlpha= isSelected ? 0.7 : 0.5;
+          ctx.beginPath(); ctx.arc(x2,y, isSelected ? 9 : 7,0,Math.PI*2); ctx.stroke();
+          ctx.globalAlpha=1;
+        }
+      }
+    }
+
+    ctx.restore();
+  });
+
+  // NOW line on top
+  ctx.strokeStyle='rgba(255,255,255,0.55)'; ctx.lineWidth=2;
+  ctx.setLineDash([4,3]);
+  ctx.beginPath(); ctx.moveTo(nowX,PAD_T-14); ctx.lineTo(nowX,PAD_T+ROWS*ROW_H); ctx.stroke();
+  ctx.setLineDash([]);
+  // NOW label
+  ctx.fillStyle='rgba(255,255,255,0.8)';
+  ctx.font='bold 10px Outfit,sans-serif'; ctx.textAlign='center';
+  ctx.fillText('▼ NOW', nowX, PAD_T-16);
+
+  // Legend
+  var legEl=document.getElementById('tt-legend');
+  if(legEl){
+    var lhtml='';
+    TL_DATA.forEach(function(d){
+      lhtml+='<div class="tt-tl-leg-item" onclick="showTenseResult(\''+d.key+'\',true)">'
+        +'<div class="tt-tl-leg-dot" style="background:'+d.color+'"></div>'
+        +'<span>'+d.label+'</span></div>';
+    });
+    legEl.innerHTML=lhtml;
+  }
+
+  // Tooltip on hover
+  canvas.onmousemove=function(ev){
+    var rect=canvas.getBoundingClientRect();
+    var mx=ev.clientX-rect.left, my=ev.clientY-rect.top;
+    var tip=document.getElementById('tt-tooltip');
+    var hit=null;
+    TL_DATA.forEach(function(d,i){
+      var y=PAD_T+i*ROW_H+ROW_H/2;
+      var x1=xOf(d.start), x2=xOf(d.end);
+      var inY=my>=PAD_T+i*ROW_H && my<=PAD_T+(i+1)*ROW_H;
+      var inX=(d.type==='arrow')?true:(mx>=x1-10&&mx<=x2+10);
+      if(inY&&inX) hit=d;
+    });
+    if(hit&&tip){
+      tip.style.display='block';
+      tip.style.left=(ev.clientX+14)+'px';
+      tip.style.top=(ev.clientY-10)+'px';
+      tip.innerHTML='<div class="ttt-name" style="color:'+hit.color+'">'+hit.label+'</div><div class="ttt-desc">'+hit.desc+'</div>';
+    } else if(tip){
+      tip.style.display='none';
+    }
+  };
+  canvas.onmouseleave=function(){
+    var tip=document.getElementById('tt-tooltip');
+    if(tip) tip.style.display='none';
+  };
+  canvas.onclick=function(ev){
+    var rect=canvas.getBoundingClientRect();
+    var mx=ev.clientX-rect.left, my=ev.clientY-rect.top;
+    TL_DATA.forEach(function(d,i){
+      var y=PAD_T+i*ROW_H+ROW_H/2;
+      var x1=xOf(d.start), x2=xOf(d.end);
+      var inY=my>=PAD_T+i*ROW_H && my<=PAD_T+(i+1)*ROW_H;
+      var inX=(d.type==='arrow')?true:(mx>=x1-10&&mx<=x2+10);
+      if(inY&&inX) showTenseResult(d.key,true);
+    });
+  };
+}
+
+window.addEventListener('resize', function(){
+  if(document.getElementById('tt-canvas')) drawTimeline();
+});
 
 function renderTTStep(){
   var steps=document.getElementById('tt-steps');if(!steps)return;
@@ -2363,27 +2636,66 @@ function ttChoose(i){
 function showTenseResult(key,direct){
   var t=TENSES[key];if(!t)return;
   var steps=document.getElementById('tt-steps');if(!steps)return;
+
+  // Update selection state
+  selectedTenseKey=key;
+
+  // Highlight active card in grid
+  document.querySelectorAll('.tt-card').forEach(function(c){ c.classList.remove('active'); });
+  var activeCard=document.getElementById('ttcard-'+key);
+  if(activeCard){ activeCard.classList.add('active'); activeCard.style.borderColor=t.color; activeCard.style.background='rgba('+hexToRgb(t.color)+',0.08)'; }
+  document.querySelectorAll('.tt-card:not(#ttcard-'+key+')').forEach(function(c){ c.style.borderColor=''; c.style.background=''; });
+
+  // Highlight active legend item
+  document.querySelectorAll('.tt-tl-leg-item').forEach(function(l,i){ l.style.opacity=TL_DATA[i].key===key?'1':'0.35'; l.style.fontWeight=TL_DATA[i].key===key?'600':'400'; });
+
+  // Redraw timeline with selection
+  drawTimeline();
+
   var html='<div class="tt-result">';
+  // Left column: name, formula, desc, markers
+  html+='<div class="tt-result-left">';
   html+='<div class="tt-result-name" style="color:'+t.color+'">'+t.name+'</div>';
   html+='<div class="tt-result-formula">'+t.formula+'</div>';
-  html+='<div class="tt-result-desc">'+t.desc+'</div>';
-  if(t.markers) html+='<div style="font-size:11px;color:var(--muted);margin-bottom:6px;font-weight:600;color:var(--b1);">⏱ Маркеры времени</div><div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px;">'+(t.markers.split(',').map(function(m){return '<span style="background:var(--bg3);border:1px solid rgba(56,189,248,0.2);border-radius:4px;padding:2px 7px;font-family:\'DM Mono\',monospace;font-size:11px;color:var(--b1);white-space:nowrap;">'+m.trim()+'</span>';}).join(''))+'</div>';
+  html+='<div class="tt-result-desc" style="margin-top:8px;">'+t.desc+'</div>';
+  if(t.markers){
+    html+='<div style="font-size:11px;font-weight:600;color:var(--b1);margin:10px 0 5px;">⏱ Маркеры времени</div>';
+    html+='<div style="display:flex;flex-wrap:wrap;gap:4px;">';
+    t.markers.split(',').forEach(function(m){
+      html+='<span style="background:var(--bg3);border:1px solid rgba(56,189,248,0.2);border-radius:4px;padding:2px 7px;font-family:\'DM Mono\',monospace;font-size:11px;color:var(--b1);white-space:nowrap;">'+m.trim()+'</span>';
+    });
+    html+='</div>';
+  }
+  html+='</div>';
+  // Right column: examples, mistakes, restart
+  html+='<div class="tt-result-right">';
+  html+='<div style="font-size:11px;font-weight:600;color:var(--muted2);margin-bottom:5px;">Примеры</div>';
   html+='<ul class="tt-result-ex">';
   t.examples.forEach(function(e){html+='<li>'+e[0]+(e[1]?'<span class="tr">'+e[1]+'</span>':'')+'</li>';});
   html+='</ul>';
   if(t.mistakes&&t.mistakes.length){
-    html+='<div class="tt-mistakes"><strong>🚫 Типичные ошибки:</strong><ul style="margin:4px 0 0 14px;padding:0;list-style:disc;">';
+    html+='<div class="tt-mistakes" style="margin-top:10px;"><strong>🚫 Типичные ошибки:</strong><ul style="margin:4px 0 0 14px;padding:0;list-style:disc;">';
     t.mistakes.forEach(function(m){html+='<li style="margin-bottom:3px;line-height:1.6;">'+m+'</li>';});
     html+='</ul></div>';
   }
   html+='<button class="tt-restart" onclick="ttRestart()">↺ Начать сначала</button>';
   html+='</div>';
+  html+='</div>';
   steps.innerHTML=html;
   if(!direct) renderTTCrumbs();
 }
 
+function hexToRgb(hex){
+  var r=/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return r?parseInt(r[1],16)+','+parseInt(r[2],16)+','+parseInt(r[3],16):'129,140,248';
+}
+
 function ttRestart(){
   ttState={path:[],node:'start'};
+  selectedTenseKey=null;
+  document.querySelectorAll('.tt-card').forEach(function(c){ c.classList.remove('active'); c.style.borderColor=''; c.style.background=''; });
+  document.querySelectorAll('.tt-tl-leg-item').forEach(function(l){ l.style.opacity=''; l.style.fontWeight=''; });
+  drawTimeline();
   renderTTStep();
 }
 
