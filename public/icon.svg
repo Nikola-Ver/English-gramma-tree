@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1a2e;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#16213e;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="treeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4ade80;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#22d3ee;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <!-- Background -->
+  <rect width="512" height="512" rx="96" fill="url(#bg)" />
+  <!-- Tree trunk -->
+  <rect x="244" y="340" width="24" height="80" rx="8" fill="url(#treeGrad)" opacity="0.9"/>
+  <!-- Tree branches -->
+  <!-- Main stem -->
+  <line x1="256" y1="340" x2="256" y2="180" stroke="url(#treeGrad)" stroke-width="16" stroke-linecap="round"/>
+  <!-- Left branch -->
+  <line x1="256" y1="240" x2="160" y2="180" stroke="url(#treeGrad)" stroke-width="12" stroke-linecap="round"/>
+  <!-- Right branch -->
+  <line x1="256" y1="240" x2="352" y2="180" stroke="url(#treeGrad)" stroke-width="12" stroke-linecap="round"/>
+  <!-- Left sub-branches -->
+  <line x1="160" y1="180" x2="120" y2="140" stroke="url(#treeGrad)" stroke-width="8" stroke-linecap="round"/>
+  <line x1="160" y1="180" x2="200" y2="140" stroke="url(#treeGrad)" stroke-width="8" stroke-linecap="round"/>
+  <!-- Right sub-branches -->
+  <line x1="352" y1="180" x2="312" y2="140" stroke="url(#treeGrad)" stroke-width="8" stroke-linecap="round"/>
+  <line x1="352" y1="180" x2="392" y2="140" stroke="url(#treeGrad)" stroke-width="8" stroke-linecap="round"/>
+  <!-- Nodes -->
+  <circle cx="256" cy="340" r="14" fill="#4ade80"/>
+  <circle cx="256" cy="240" r="12" fill="#22d3ee"/>
+  <circle cx="160" cy="180" r="10" fill="#4ade80"/>
+  <circle cx="352" cy="180" r="10" fill="#4ade80"/>
+  <circle cx="120" cy="140" r="8" fill="#22d3ee"/>
+  <circle cx="200" cy="140" r="8" fill="#22d3ee"/>
+  <circle cx="312" cy="140" r="8" fill="#22d3ee"/>
+  <circle cx="392" cy="140" r="8" fill="#22d3ee"/>
+  <!-- Root -->
+  <circle cx="256" cy="420" r="14" fill="#4ade80"/>
+  <!-- Letter E -->
+  <text x="256" y="100" font-family="Georgia, serif" font-size="52" font-weight="bold" fill="url(#treeGrad)" text-anchor="middle" dominant-baseline="middle">EN</text>
+</svg>
