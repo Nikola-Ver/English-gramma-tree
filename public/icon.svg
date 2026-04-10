@@ -1,42 +1,81 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <defs>
     <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#1a1a2e;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#16213e;stop-opacity:1" />
+      <stop offset="0%" stop-color="#0d1b2a"/>
+      <stop offset="100%" stop-color="#1a2744"/>
     </linearGradient>
-    <linearGradient id="treeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#4ade80;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#22d3ee;stop-opacity:1" />
-    </linearGradient>
+    <radialGradient id="rootAura" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#4ade80" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#4ade80" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="midAura" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#34d399" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="#34d399" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="leafAura" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#22d3ee" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="#22d3ee" stop-opacity="0"/>
+    </radialGradient>
   </defs>
+
   <!-- Background -->
-  <rect width="512" height="512" rx="96" fill="url(#bg)" />
-  <!-- Tree trunk -->
-  <rect x="244" y="340" width="24" height="80" rx="8" fill="url(#treeGrad)" opacity="0.9"/>
-  <!-- Tree branches -->
-  <!-- Main stem -->
-  <line x1="256" y1="340" x2="256" y2="180" stroke="url(#treeGrad)" stroke-width="16" stroke-linecap="round"/>
-  <!-- Left branch -->
-  <line x1="256" y1="240" x2="160" y2="180" stroke="url(#treeGrad)" stroke-width="12" stroke-linecap="round"/>
-  <!-- Right branch -->
-  <line x1="256" y1="240" x2="352" y2="180" stroke="url(#treeGrad)" stroke-width="12" stroke-linecap="round"/>
-  <!-- Left sub-branches -->
-  <line x1="160" y1="180" x2="120" y2="140" stroke="url(#treeGrad)" stroke-width="8" stroke-linecap="round"/>
-  <line x1="160" y1="180" x2="200" y2="140" stroke="url(#treeGrad)" stroke-width="8" stroke-linecap="round"/>
-  <!-- Right sub-branches -->
-  <line x1="352" y1="180" x2="312" y2="140" stroke="url(#treeGrad)" stroke-width="8" stroke-linecap="round"/>
-  <line x1="352" y1="180" x2="392" y2="140" stroke="url(#treeGrad)" stroke-width="8" stroke-linecap="round"/>
-  <!-- Nodes -->
-  <circle cx="256" cy="340" r="14" fill="#4ade80"/>
-  <circle cx="256" cy="240" r="12" fill="#22d3ee"/>
-  <circle cx="160" cy="180" r="10" fill="#4ade80"/>
-  <circle cx="352" cy="180" r="10" fill="#4ade80"/>
-  <circle cx="120" cy="140" r="8" fill="#22d3ee"/>
-  <circle cx="200" cy="140" r="8" fill="#22d3ee"/>
-  <circle cx="312" cy="140" r="8" fill="#22d3ee"/>
-  <circle cx="392" cy="140" r="8" fill="#22d3ee"/>
-  <!-- Root -->
-  <circle cx="256" cy="420" r="14" fill="#4ade80"/>
-  <!-- Letter E -->
-  <text x="256" y="100" font-family="Georgia, serif" font-size="52" font-weight="bold" fill="url(#treeGrad)" text-anchor="middle" dominant-baseline="middle">EN</text>
+  <rect width="512" height="512" rx="96" fill="url(#bg)"/>
+
+  <!-- Subtle inner border glow -->
+  <rect width="512" height="512" rx="96" fill="none" stroke="#4ade80" stroke-width="1.5" opacity="0.12"/>
+
+  <!-- === Connector lines (below nodes) === -->
+
+  <!-- Root → Left mid -->
+  <line x1="256" y1="374" x2="150" y2="262"
+        stroke="#4ade80" stroke-width="16" stroke-linecap="round" opacity="0.45"/>
+  <!-- Root → Right mid -->
+  <line x1="256" y1="374" x2="362" y2="262"
+        stroke="#4ade80" stroke-width="16" stroke-linecap="round" opacity="0.45"/>
+
+  <!-- Left mid → leaf LL -->
+  <line x1="150" y1="262" x2="94" y2="152"
+        stroke="#22d3ee" stroke-width="11" stroke-linecap="round" opacity="0.38"/>
+  <!-- Left mid → leaf LR -->
+  <line x1="150" y1="262" x2="210" y2="152"
+        stroke="#22d3ee" stroke-width="11" stroke-linecap="round" opacity="0.38"/>
+  <!-- Right mid → leaf RL -->
+  <line x1="362" y1="262" x2="302" y2="152"
+        stroke="#22d3ee" stroke-width="11" stroke-linecap="round" opacity="0.38"/>
+  <!-- Right mid → leaf RR -->
+  <line x1="362" y1="262" x2="418" y2="152"
+        stroke="#22d3ee" stroke-width="11" stroke-linecap="round" opacity="0.38"/>
+
+  <!-- === Root node === -->
+  <circle cx="256" cy="388" r="68" fill="url(#rootAura)"/>
+  <circle cx="256" cy="388" r="38" fill="#4ade80"/>
+  <circle cx="256" cy="388" r="22" fill="#bbf7d0"/>
+
+  <!-- === Level 2 nodes === -->
+  <!-- Left -->
+  <circle cx="150" cy="262" r="50" fill="url(#midAura)"/>
+  <circle cx="150" cy="262" r="29" fill="#34d399"/>
+  <circle cx="150" cy="262" r="15" fill="#a7f3d0"/>
+  <!-- Right -->
+  <circle cx="362" cy="262" r="50" fill="url(#midAura)"/>
+  <circle cx="362" cy="262" r="29" fill="#34d399"/>
+  <circle cx="362" cy="262" r="15" fill="#a7f3d0"/>
+
+  <!-- === Leaf nodes === -->
+  <!-- LL -->
+  <circle cx="94" cy="148" r="36" fill="url(#leafAura)"/>
+  <circle cx="94" cy="148" r="21" fill="#22d3ee"/>
+  <circle cx="94" cy="148" r="11" fill="#a5f3fc"/>
+  <!-- LR -->
+  <circle cx="210" cy="148" r="36" fill="url(#leafAura)"/>
+  <circle cx="210" cy="148" r="21" fill="#22d3ee"/>
+  <circle cx="210" cy="148" r="11" fill="#a5f3fc"/>
+  <!-- RL -->
+  <circle cx="302" cy="148" r="36" fill="url(#leafAura)"/>
+  <circle cx="302" cy="148" r="21" fill="#22d3ee"/>
+  <circle cx="302" cy="148" r="11" fill="#a5f3fc"/>
+  <!-- RR -->
+  <circle cx="418" cy="148" r="36" fill="url(#leafAura)"/>
+  <circle cx="418" cy="148" r="21" fill="#22d3ee"/>
+  <circle cx="418" cy="148" r="11" fill="#a5f3fc"/>
 </svg>
