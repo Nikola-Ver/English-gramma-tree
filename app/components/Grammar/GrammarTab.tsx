@@ -20,9 +20,17 @@ export function GrammarTab({ done, onToggleRule, onReset, searchQuery }: Props) 
   const forceOpenSet = new Set<string>();
   if (q) {
     DATA.forEach((lvl) => {
+      if (lvl.id.toLowerCase().includes(q) || lvl.name.toLowerCase().includes(q)) {
+        forceOpenSet.add(lvl.id);
+        return;
+      }
       lvl.categories.forEach((cat) => {
+        if (cat.name.toLowerCase().includes(q)) {
+          forceOpenSet.add(lvl.id);
+          return;
+        }
         cat.rules.forEach((rule) => {
-          if (`${rule.text} ${rule.note || ''} ${rule.exp || ''}`.toLowerCase().includes(q)) {
+          if (`${rule.text} ${rule.note || ''}`.toLowerCase().includes(q)) {
             forceOpenSet.add(lvl.id);
           }
         });
@@ -30,15 +38,7 @@ export function GrammarTab({ done, onToggleRule, onReset, searchQuery }: Props) 
     });
   }
 
-  const hasResults =
-    !q ||
-    DATA.some((lvl) =>
-      lvl.categories.some((cat) =>
-        cat.rules.some((rule) =>
-          `${rule.text} ${rule.note || ''} ${rule.exp || ''}`.toLowerCase().includes(q),
-        ),
-      ),
-    );
+  const hasResults = !q || forceOpenSet.size > 0;
 
   async function handleGlobalTest(e: React.MouseEvent<HTMLButtonElement>) {
     const btn = e.currentTarget;

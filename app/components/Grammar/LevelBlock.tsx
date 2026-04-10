@@ -80,6 +80,9 @@ export function LevelBlock({
   }, []);
 
   const q = searchQuery.trim().toLowerCase();
+  const levelMatches = q
+    ? level.id.toLowerCase().includes(q) || level.name.toLowerCase().includes(q)
+    : false;
 
   return (
     <div className={`level-block${open ? ' open' : ''}`} id={`level-${k}`}>
@@ -111,7 +114,20 @@ export function LevelBlock({
       <div ref={contentRef} className="level-content">
         {everOpened &&
           level.categories.map((cat, ci) => {
+            const catMatches = q ? cat.name.toLowerCase().includes(q) : false;
             let ruleIdx = 0;
+            const ruleItems = cat.rules.map((rule) => {
+              const searchHidden =
+                q && !levelMatches && !catMatches
+                  ? !`${rule.text} ${rule.note || ''}`.toLowerCase().includes(q)
+                  : false;
+              const delay = 0.05 + ruleIdx * 0.028;
+              ruleIdx++;
+              return { rule, searchHidden, delay };
+            });
+
+            if (q && ruleItems.every((r) => r.searchHidden)) return null;
+
             return (
               <div
                 key={cat.name}
@@ -120,28 +136,19 @@ export function LevelBlock({
               >
                 <div className="category-title">{cat.name}</div>
                 <div className="rules-grid">
-                  {cat.rules.map((rule) => {
-                    const searchHidden = q
-                      ? !`${rule.text} ${rule.note || ''} ${rule.exp || ''}`
-                          .toLowerCase()
-                          .includes(q)
-                      : false;
-                    const delay = 0.05 + ruleIdx * 0.028;
-                    ruleIdx++;
-                    return (
-                      <RuleItem
-                        key={rule.id}
-                        rule={rule}
-                        level={level}
-                        categoryName={cat.name}
-                        isDone={!!done[rule.id]}
-                        animDelay={delay}
-                        onToggle={onToggleRule}
-                        searchHidden={searchHidden}
-                        promptBuilder={promptBuilder}
-                      />
-                    );
-                  })}
+                  {ruleItems.map(({ rule, searchHidden, delay }) => (
+                    <RuleItem
+                      key={rule.id}
+                      rule={rule}
+                      level={level}
+                      categoryName={cat.name}
+                      isDone={!!done[rule.id]}
+                      animDelay={delay}
+                      onToggle={onToggleRule}
+                      searchHidden={searchHidden}
+                      promptBuilder={promptBuilder}
+                    />
+                  ))}
                 </div>
               </div>
             );

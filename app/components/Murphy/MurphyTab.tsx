@@ -10,11 +10,36 @@ interface Props {
   done: DoneMap;
   onToggleRule: (id: string) => void;
   onReset: () => void;
+  searchQuery: string;
 }
 
-export function MurphyTab({ done, onToggleRule, onReset }: Props) {
+export function MurphyTab({ done, onToggleRule, onReset, searchQuery }: Props) {
   const { total, checked } = countAll(done, MURPHY_DATA);
   const pct = total ? Math.round((checked / total) * 100) : 0;
+  const q = searchQuery.trim().toLowerCase();
+
+  const forceOpenSet = new Set<string>();
+  if (q) {
+    MURPHY_DATA.forEach((lvl) => {
+      if (lvl.id.toLowerCase().includes(q) || lvl.name.toLowerCase().includes(q)) {
+        forceOpenSet.add(lvl.id);
+        return;
+      }
+      lvl.categories.forEach((cat) => {
+        if (cat.name.toLowerCase().includes(q)) {
+          forceOpenSet.add(lvl.id);
+          return;
+        }
+        cat.rules.forEach((rule) => {
+          if (`${rule.text} ${rule.note || ''}`.toLowerCase().includes(q)) {
+            forceOpenSet.add(lvl.id);
+          }
+        });
+      });
+    });
+  }
+
+  const hasResults = !q || forceOpenSet.size > 0;
 
   async function handleGlobalTest(e: React.MouseEvent<HTMLButtonElement>) {
     const btn = e.currentTarget;
@@ -74,12 +99,13 @@ export function MurphyTab({ done, onToggleRule, onReset }: Props) {
             level={level}
             done={done}
             onToggleRule={onToggleRule}
-            searchQuery=""
-            forceOpen={false}
+            searchQuery={searchQuery}
+            forceOpen={forceOpenSet.has(level.id)}
             promptBuilder={buildMurphyRulePrompt}
           />
         ))}
       </div>
+      {!hasResults && <div className="no-results">Ничего не найдено по запросу</div>}
 
       <button className="reset-btn" onClick={handleReset}>
         ↺ Сбросить прогресс

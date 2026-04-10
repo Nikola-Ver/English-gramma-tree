@@ -17,11 +17,7 @@ export function App() {
 
   return (
     <div className="wrap">
-      <Header
-        done={grammarProgress.done}
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-      />
+      <Header searchQuery={searchQuery} onSearchChange={setSearchQuery} />
       <Tabs activeTab={activeTab} onSwitch={setActiveTab} />
       {activeTab === 'grammar' && (
         <GrammarTab
@@ -36,6 +32,7 @@ export function App() {
           done={murphyProgress.done}
           onToggleRule={murphyProgress.toggleRule}
           onReset={murphyProgress.resetAll}
+          searchQuery={searchQuery}
         />
       )}
       {activeTab === 'tenses' && <TensesTab />}
