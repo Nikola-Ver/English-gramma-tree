@@ -106,7 +106,7 @@ export function RuleItem({
     <div
       className={`rule-item${isDone ? ' done' : ''}${searchHidden ? ' hidden-search' : ''}`}
       id={`ri-${rule.id}`}
-      style={{ animationDelay: `${animDelay}s` }}
+      style={{ '--anim-delay': `${animDelay}s` } as React.CSSProperties}
     >
       <div className="rule-top" onClick={handleExpToggle}>
         <div ref={checkRef} className="rule-check" onClick={handleCheck} style={checkStyle}>

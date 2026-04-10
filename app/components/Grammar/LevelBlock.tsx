@@ -23,36 +23,41 @@ export function LevelBlock({
   promptBuilder,
 }: Props) {
   const [isOpen, setIsOpen] = useState(false);
-  // Once true, children stay mounted so closing animates and reopening is instant
   const [everOpened, setEverOpened] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
+  const closingTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const k = level.id.toLowerCase();
   const { total, checked } = countLevel(level, done);
   const pct = total ? Math.round((checked / total) * 100) : 0;
 
   const open = isOpen || forceOpen;
 
-  // Animate open/close imperatively so maxHeight transitions work correctly
   useEffect(() => {
     const el = contentRef.current;
     if (!el) return;
 
     if (open) {
+      if (closingTimer.current) {
+        clearTimeout(closingTimer.current);
+        closingTimer.current = null;
+      }
+      setIsClosing(false);
       setEverOpened(true);
-      // Let React render children first, then measure and expand
+
       el.style.transition = 'none';
       el.style.maxHeight = '0';
       el.style.opacity = '0';
 
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
-          el.style.transition = 'max-height 0.46s cubic-bezier(0.22,1,0.36,1), opacity 0.3s ease';
+          el.style.transition = 'max-height 0.54s cubic-bezier(0.22,1,0.36,1), opacity 0.36s ease';
           el.style.maxHeight = `${el.scrollHeight}px`;
           el.style.opacity = '1';
 
           const onEnd = (e: TransitionEvent) => {
             if (e.propertyName === 'max-height') {
-              el.style.maxHeight = 'none'; // allow dynamic resize once open
+              el.style.maxHeight = 'none';
               el.removeEventListener('transitionend', onEnd);
             }
           };
@@ -60,20 +65,33 @@ export function LevelBlock({
         });
       });
     } else {
-      if (!everOpened) return; // never opened — nothing to close
-      // Pin current height so the transition has a numeric start value
+      if (!everOpened) return;
+
+      setIsClosing(true);
       el.style.maxHeight = `${el.scrollHeight}px`;
       el.style.opacity = '1';
 
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
-          el.style.transition = 'max-height 0.38s cubic-bezier(0.4,0,0.6,1), opacity 0.25s ease';
+          el.style.transition =
+            'max-height 0.44s cubic-bezier(0.4,0,0.6,1), opacity 0.3s ease 0.06s';
           el.style.maxHeight = '0';
           el.style.opacity = '0';
+
+          closingTimer.current = setTimeout(() => {
+            setIsClosing(false);
+            closingTimer.current = null;
+          }, 460);
         });
       });
     }
   }, [open, everOpened]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    return () => {
+      if (closingTimer.current) clearTimeout(closingTimer.current);
+    };
+  }, []);
 
   const toggleOpen = useCallback(() => {
     setIsOpen((v) => !v);
@@ -85,7 +103,10 @@ export function LevelBlock({
     : false;
 
   return (
-    <div className={`level-block${open ? ' open' : ''}`} id={`level-${k}`}>
+    <div
+      className={`level-block${open ? ' open' : ''}${isClosing ? ' closing' : ''}`}
+      id={`level-${k}`}
+    >
       <div className="level-header" onClick={toggleOpen}>
         <div
           className="level-dot"
