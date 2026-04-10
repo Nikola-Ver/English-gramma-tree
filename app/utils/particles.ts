@@ -63,18 +63,21 @@ export function spawnParticles(chkEl: HTMLElement, color: string): void {
   }
 
   let start: number | null = null;
+  let prev: number | null = null;
   function frame(ts: number) {
     if (!start) start = ts;
+    const dt = Math.min((ts - (prev ?? ts)) / (1000 / 60), 3);
+    prev = ts;
     const elapsed = (ts - start) / 1000;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     let alive = false;
     particles.forEach((p) => {
-      p.vx += p.ax;
-      p.vy += p.ay;
-      p.x += p.vx;
-      p.y += p.vy;
+      p.vx += p.ax * dt;
+      p.vy += p.ay * dt;
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
       p.alpha = Math.max(0, 1 - elapsed / 0.7);
-      p.rot += p.rotV;
+      p.rot += p.rotV * dt;
       if (p.alpha > 0) alive = true;
       ctx.save();
       ctx.globalAlpha = p.alpha;
