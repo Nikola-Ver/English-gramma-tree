@@ -41,3 +41,23 @@ export function parseRuleHash(): { ruleId: string; selectionData: SelectionData 
     selectionData: match[2] ? decodeSelection(match[2]) : null,
   };
 }
+
+/** Returns a shareable URL for a tense, optionally with a path-based selection. */
+export function buildTenseUrl(tenseKey: string, selectionData?: SelectionData): string {
+  const base = `${location.origin}${location.pathname}`;
+  const hash = `tense-${tenseKey}`;
+  if (selectionData) {
+    return `${base}#${hash}~${encodeSelection(selectionData)}`;
+  }
+  return `${base}#${hash}`;
+}
+
+/** Reads the current URL hash and extracts tense key and optional selection data. */
+export function parseTenseHash(): { tenseKey: string; selectionData: SelectionData | null } | null {
+  const match = location.hash.match(/^#tense-([^~\s]+?)(?:~(.+))?$/);
+  if (!match) return null;
+  return {
+    tenseKey: match[1],
+    selectionData: match[2] ? decodeSelection(match[2]) : null,
+  };
+}

@@ -8,7 +8,7 @@ import { TensesTab } from './components/Tenses/TensesTab';
 import { DATA } from './data/grammar';
 import { MURPHY_DATA } from './data/murphy';
 import { useProgress } from './hooks/useProgress';
-import { parseRuleHash } from './utils/deepLink';
+import { parseRuleHash, parseTenseHash } from './utils/deepLink';
 
 type Tab = 'grammar' | 'murphy' | 'tenses';
 
@@ -30,17 +30,24 @@ export function App() {
   const [activeTab, setActiveTab] = useState<Tab>('grammar');
   const [searchQuery, setSearchQuery] = useState('');
   const [targetRuleId, setTargetRuleId] = useState<string | null>(null);
+  const [targetTenseKey, setTargetTenseKey] = useState<string | null>(null);
   const grammarProgress = useProgress('eng_v4');
   const murphyProgress = useProgress('murphy_v1');
 
   useEffect(() => {
-    const parsed = parseRuleHash();
-    if (parsed) {
-      const tab = findRuleTab(parsed.ruleId);
+    const parsedRule = parseRuleHash();
+    if (parsedRule) {
+      const tab = findRuleTab(parsedRule.ruleId);
       if (tab) {
         setActiveTab(tab);
-        setTargetRuleId(parsed.ruleId);
+        setTargetRuleId(parsedRule.ruleId);
       }
+      return;
+    }
+    const parsedTense = parseTenseHash();
+    if (parsedTense) {
+      setActiveTab('tenses');
+      setTargetTenseKey(parsedTense.tenseKey);
     }
   }, []);
 
@@ -66,7 +73,7 @@ export function App() {
           targetRuleId={targetRuleId}
         />
       )}
-      {activeTab === 'tenses' && <TensesTab />}
+      {activeTab === 'tenses' && <TensesTab targetTenseKey={targetTenseKey} />}
     </div>
   );
 }

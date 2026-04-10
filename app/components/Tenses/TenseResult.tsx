@@ -1,4 +1,10 @@
+import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import type { Tense } from '../../data/tenses';
+import { copyToClipboard } from '../../utils/clipboard';
+import type { SelectionData } from '../../utils/deepLink';
+import { buildTenseUrl, parseTenseHash } from '../../utils/deepLink';
+import { applySelection, getSelectionData, restoreSelectionData } from '../../utils/selection';
 
 interface Props {
   tenseKey: string;
@@ -7,7 +13,122 @@ interface Props {
   onRestart: () => void;
 }
 
-export function TenseResult({ tense, breadcrumbs, onRestart }: Props) {
+interface SelectionPop {
+  selData: SelectionData;
+  text: string;
+  x: number;
+  y: number;
+}
+
+const SVG_LINK = (
+  <svg
+    width="11"
+    height="11"
+    viewBox="0 0 11 11"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.5"
+    strokeLinecap="round"
+  >
+    <path d="M4.5 6.5l2-2" />
+    <path d="M3.5 5L2 6.5a2.2 2.2 0 003.1 3.1L6.5 8" />
+    <path d="M7.5 6L9 4.5A2.2 2.2 0 005.9 1.4L4.5 3" />
+  </svg>
+);
+
+export function TenseResult({ tenseKey, tense, breadcrumbs, onRestart }: Props) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [selPop, setSelPop] = useState<SelectionPop | null>(null);
+  const [selCopied, setSelCopied] = useState(false);
+  const [shareCopied, setShareCopied] = useState(false);
+  const [deepHighlighted, setDeepHighlighted] = useState(false);
+  const highlightApplied = useRef(false);
+
+  // Restore deep-link selection on mount
+  useEffect(() => {
+    if (highlightApplied.current || !containerRef.current) return;
+    const parsed = parseTenseHash();
+    if (!parsed || parsed.tenseKey !== tenseKey || !parsed.selectionData) return;
+
+    const data = parsed.selectionData;
+    const container = containerRef.current;
+
+    const timer = setTimeout(() => {
+      if (highlightApplied.current || !document.body.contains(container)) return;
+      highlightApplied.current = true;
+
+      const range = restoreSelectionData(container, data);
+      if (!range) return;
+
+      setDeepHighlighted(true);
+      applySelection(range);
+
+      const rect = range.getBoundingClientRect();
+      if (rect.width || rect.height) {
+        window.scrollTo({
+          top: rect.top + window.scrollY - window.innerHeight / 2,
+          behavior: 'smooth',
+        });
+      }
+
+      const stopGlow = () => setDeepHighlighted(false);
+      const opts: AddEventListenerOptions = { once: true, passive: true };
+      window.addEventListener('pointerdown', stopGlow, opts);
+      window.addEventListener('touchstart', stopGlow, opts);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [tenseKey]);
+
+  // Selection popover
+  useEffect(() => {
+    function onSelectionChange() {
+      const container = containerRef.current;
+      if (!container) return;
+      const sel = window.getSelection();
+      if (!sel || sel.rangeCount === 0 || sel.isCollapsed) {
+        setSelPop(null);
+        return;
+      }
+      const range = sel.getRangeAt(0);
+      if (!container.contains(range.commonAncestorContainer)) {
+        setSelPop(null);
+        return;
+      }
+      const text = sel.toString().trim();
+      const selData = getSelectionData(container);
+      if (!text || !selData) {
+        setSelPop(null);
+        return;
+      }
+      const rect = range.getBoundingClientRect();
+      setSelPop({ selData, text, x: (rect.left + rect.right) / 2, y: rect.bottom });
+    }
+
+    document.addEventListener('selectionchange', onSelectionChange);
+    return () => document.removeEventListener('selectionchange', onSelectionChange);
+  }, []);
+
+  async function handleSelShare() {
+    if (!selPop || !containerRef.current) return;
+    const range = restoreSelectionData(containerRef.current, selPop.selData);
+    if (range) applySelection(range);
+    const url = buildTenseUrl(tenseKey, selPop.selData);
+    history.replaceState(null, '', `#tense-${tenseKey}~${url.split('~')[1]}`);
+    await copyToClipboard(url);
+    setSelCopied(true);
+    setTimeout(() => setSelCopied(false), 2000);
+  }
+
+  async function handleShare(e: React.MouseEvent<HTMLButtonElement>) {
+    e.stopPropagation();
+    const url = buildTenseUrl(tenseKey);
+    history.replaceState(null, '', `#tense-${tenseKey}`);
+    await copyToClipboard(url);
+    setShareCopied(true);
+    setTimeout(() => setShareCopied(false), 2000);
+  }
+
   const markers = tense.markers ? tense.markers.split(',') : [];
 
   return (
@@ -21,10 +142,20 @@ export function TenseResult({ tense, breadcrumbs, onRestart }: Props) {
           ))}
         </div>
       )}
-      <div className="tt-result">
+
+      <div ref={containerRef} className={`tt-result${deepHighlighted ? ' deep-highlighted' : ''}`}>
         <div className="tt-result-left">
-          <div className="tt-result-name" style={{ color: tense.color }}>
-            {tense.name}
+          <div className="tt-result-name-row">
+            <div className="tt-result-name" style={{ color: tense.color }}>
+              {tense.name}
+            </div>
+            <button
+              className={`tense-share-btn${shareCopied ? ' copied' : ''}`}
+              onClick={handleShare}
+              title="Copy link to this tense"
+            >
+              {shareCopied ? '✓' : SVG_LINK}
+            </button>
           </div>
           <div className="tt-result-formula">{tense.formula}</div>
           <div className="tt-result-desc" style={{ marginTop: 8 }}>
@@ -90,6 +221,29 @@ export function TenseResult({ tense, breadcrumbs, onRestart }: Props) {
           </button>
         </div>
       </div>
+
+      {selPop &&
+        createPortal(
+          <div
+            className={`sel-share-pop${selCopied ? ' copied' : ''}`}
+            style={{
+              position: 'fixed',
+              left: selPop.x,
+              top: selPop.y + 8,
+              transform: 'translateX(-50%)',
+              zIndex: 9998,
+            }}
+          >
+            <button
+              className="sel-share-btn"
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={handleSelShare}
+            >
+              {selCopied ? '✓ Ссылка скопирована' : '⛓ Поделиться выделенным текстом'}
+            </button>
+          </div>,
+          document.body,
+        )}
     </>
   );
 }

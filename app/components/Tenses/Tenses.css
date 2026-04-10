@@ -340,3 +340,90 @@
   color: var(--muted2);
   font-size: 11px;
 }
+
+/* Tense name row with share button */
+.tt-result-name-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 4px;
+}
+
+.tt-result-name-row .tt-result-name {
+  margin-bottom: 0;
+}
+
+.tense-share-btn {
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  color: var(--muted);
+  padding: 2px 5px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+  opacity: 0;
+  flex-shrink: 0;
+}
+
+.tt-result:hover .tense-share-btn {
+  opacity: 1;
+}
+
+.tense-share-btn:hover {
+  border-color: rgba(129, 140, 248, 0.35);
+  color: var(--b2);
+  background: rgba(129, 140, 248, 0.06);
+}
+
+.tense-share-btn.copied {
+  border-color: var(--a1);
+  color: var(--a1);
+  background: rgba(74, 222, 128, 0.08);
+  opacity: 1;
+  font-size: 11px;
+}
+
+/* Deep-link highlight on tense result */
+.tt-result.deep-highlighted ::selection {
+  background-color: rgba(52, 211, 153, 0.45);
+  color: #e8eaf0;
+  text-shadow:
+    0 0 10px rgba(56, 189, 248, 0.6),
+    0 0 20px rgba(52, 211, 153, 0.35);
+}
+
+.tt-result.deep-highlighted {
+  animation: tenseHlGlow 6.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes tenseHlGlow {
+  0% {
+    box-shadow: none;
+    border-color: var(--border2);
+  }
+  12% {
+    box-shadow:
+      inset 0 0 0 1px rgba(52, 211, 153, 0.75),
+      0 0 22px rgba(52, 211, 153, 0.15);
+    border-color: rgba(52, 211, 153, 0.55);
+  }
+  45% {
+    box-shadow:
+      inset 0 0 0 1px rgba(56, 189, 248, 0.75),
+      0 0 22px rgba(56, 189, 248, 0.15);
+    border-color: rgba(56, 189, 248, 0.55);
+  }
+  75% {
+    box-shadow:
+      inset 0 0 0 1px rgba(52, 211, 153, 0.4),
+      0 0 12px rgba(52, 211, 153, 0.08);
+    border-color: rgba(52, 211, 153, 0.3);
+  }
+  100% {
+    box-shadow: none;
+    border-color: var(--border2);
+  }
+}

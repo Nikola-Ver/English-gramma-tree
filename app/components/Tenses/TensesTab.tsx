@@ -1,13 +1,24 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import './Tenses.css';
 import { TENSES } from '../../data/tenses';
 import { TenseResult } from './TenseResult';
 import { TenseTree } from './TenseTree';
 import { Timeline } from './Timeline';
 
-export function TensesTab() {
+interface Props {
+  targetTenseKey?: string | null;
+}
+
+export function TensesTab({ targetTenseKey }: Props) {
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const [directResult, setDirectResult] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (targetTenseKey && TENSES[targetTenseKey]) {
+      setSelectedKey(targetTenseKey);
+      setDirectResult(targetTenseKey);
+    }
+  }, [targetTenseKey]);
 
   function handleSelectTense(key: string) {
     setSelectedKey(key);
