@@ -111,6 +111,46 @@ a.rule-unit-link:hover {
   padding-top: 1px;
 }
 
+.share-btn {
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  color: var(--muted);
+  font-size: 10px;
+  padding: 2px 5px;
+  cursor: pointer;
+  font-family: "Outfit", sans-serif;
+  transition: all 0.15s;
+  white-space: nowrap;
+  line-height: 1.4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+}
+
+.rule-item:hover .share-btn {
+  opacity: 1;
+}
+
+.share-btn:hover {
+  border-color: rgba(129, 140, 248, 0.35);
+  color: var(--b2);
+  background: rgba(129, 140, 248, 0.06);
+}
+
+.share-btn:active {
+  transform: scale(0.92);
+}
+
+.share-btn.copied {
+  border-color: var(--a1);
+  color: var(--a1);
+  background: rgba(74, 222, 128, 0.08);
+  opacity: 1;
+  font-size: 11px;
+}
+
 .test-btn {
   background: none;
   border: 1px solid rgba(129, 140, 248, 0.35);
@@ -245,5 +285,24 @@ a.rule-unit-link:hover {
   100% {
     transform: scale(1);
     opacity: 1;
+  }
+}
+
+.rule-item.rule-target-highlight {
+  animation: targetPulse 2.2s ease forwards;
+}
+
+@keyframes targetPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(129, 140, 248, 0.5);
+    border-color: rgba(129, 140, 248, 0.7);
+  }
+  30% {
+    box-shadow: 0 0 0 6px rgba(129, 140, 248, 0.15);
+    border-color: rgba(129, 140, 248, 1);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(129, 140, 248, 0);
+    border-color: var(--border);
   }
 }

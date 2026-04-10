@@ -11,6 +11,7 @@ interface Props {
   onToggleRule: (id: string) => void;
   searchQuery: string;
   forceOpen: boolean;
+  targetRuleId?: string | null;
   promptBuilder?: (rule: Rule, level: Level, cat: Category) => string;
 }
 
@@ -20,6 +21,7 @@ export function LevelBlock({
   onToggleRule,
   searchQuery,
   forceOpen,
+  targetRuleId,
   promptBuilder,
 }: Props) {
   const [isOpen, setIsOpen] = useState(false);
@@ -168,6 +170,7 @@ export function LevelBlock({
                       onToggle={onToggleRule}
                       searchHidden={searchHidden}
                       promptBuilder={promptBuilder}
+                      isTarget={rule.id === targetRuleId}
                     />
                   ))}
                 </div>

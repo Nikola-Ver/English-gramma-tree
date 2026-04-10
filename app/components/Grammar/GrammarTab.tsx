@@ -10,9 +10,10 @@ interface Props {
   onToggleRule: (id: string) => void;
   onReset: () => void;
   searchQuery: string;
+  targetRuleId?: string | null;
 }
 
-export function GrammarTab({ done, onToggleRule, onReset, searchQuery }: Props) {
+export function GrammarTab({ done, onToggleRule, onReset, searchQuery, targetRuleId }: Props) {
   const { total, checked } = countAll(done);
   const pct = total ? Math.round((checked / total) * 100) : 0;
   const q = searchQuery.trim().toLowerCase();
@@ -35,6 +36,13 @@ export function GrammarTab({ done, onToggleRule, onReset, searchQuery }: Props) 
           }
         });
       });
+    });
+  }
+  if (targetRuleId) {
+    DATA.forEach((lvl) => {
+      if (lvl.categories.some((cat) => cat.rules.some((r) => r.id === targetRuleId))) {
+        forceOpenSet.add(lvl.id);
+      }
     });
   }
 
@@ -100,6 +108,7 @@ export function GrammarTab({ done, onToggleRule, onReset, searchQuery }: Props) 
             onToggleRule={onToggleRule}
             searchQuery={searchQuery}
             forceOpen={forceOpenSet.has(level.id)}
+            targetRuleId={targetRuleId}
           />
         ))}
       </div>

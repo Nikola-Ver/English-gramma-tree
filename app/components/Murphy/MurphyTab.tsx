@@ -11,9 +11,10 @@ interface Props {
   onToggleRule: (id: string) => void;
   onReset: () => void;
   searchQuery: string;
+  targetRuleId?: string | null;
 }
 
-export function MurphyTab({ done, onToggleRule, onReset, searchQuery }: Props) {
+export function MurphyTab({ done, onToggleRule, onReset, searchQuery, targetRuleId }: Props) {
   const { total, checked } = countAll(done, MURPHY_DATA);
   const pct = total ? Math.round((checked / total) * 100) : 0;
   const q = searchQuery.trim().toLowerCase();
@@ -36,6 +37,13 @@ export function MurphyTab({ done, onToggleRule, onReset, searchQuery }: Props) {
           }
         });
       });
+    });
+  }
+  if (targetRuleId) {
+    MURPHY_DATA.forEach((lvl) => {
+      if (lvl.categories.some((cat) => cat.rules.some((r) => r.id === targetRuleId))) {
+        forceOpenSet.add(lvl.id);
+      }
     });
   }
 
@@ -101,6 +109,7 @@ export function MurphyTab({ done, onToggleRule, onReset, searchQuery }: Props) {
             onToggleRule={onToggleRule}
             searchQuery={searchQuery}
             forceOpen={forceOpenSet.has(level.id)}
+            targetRuleId={targetRuleId}
             promptBuilder={buildMurphyRulePrompt}
           />
         ))}

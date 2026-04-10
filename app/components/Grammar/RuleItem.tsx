@@ -1,8 +1,9 @@
-import { useCallback, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import './RuleItem.css';
 import { useState } from 'react';
 import type { Category, Level, Rule } from '../../data/grammar';
 import { copyToClipboard } from '../../utils/clipboard';
+import { buildRuleUrl } from '../../utils/deepLink';
 import { spawnParticles } from '../../utils/particles';
 import { buildRulePrompt } from '../../utils/prompts';
 import { RuleExpansion } from './RuleExpansion';
@@ -15,6 +16,7 @@ interface Props {
   animDelay: number;
   onToggle: (id: string) => void;
   searchHidden: boolean;
+  isTarget?: boolean;
   promptBuilder?: (rule: Rule, level: Level, cat: Category) => string;
 }
 
@@ -30,6 +32,22 @@ const SVG_CHK = (
   </svg>
 );
 
+const SVG_LINK = (
+  <svg
+    width="11"
+    height="11"
+    viewBox="0 0 11 11"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.5"
+    strokeLinecap="round"
+  >
+    <path d="M4.5 6.5l2-2" />
+    <path d="M3.5 5L2 6.5a2.2 2.2 0 003.1 3.1L6.5 8" />
+    <path d="M7.5 6L9 4.5A2.2 2.2 0 005.9 1.4L4.5 3" />
+  </svg>
+);
+
 export function RuleItem({
   rule,
   level,
@@ -37,10 +55,24 @@ export function RuleItem({
   animDelay,
   onToggle,
   searchHidden,
+  isTarget = false,
   promptBuilder,
 }: Props) {
-  const [expOpen, setExpOpen] = useState(false);
+  const [expOpen, setExpOpen] = useState(isTarget);
+  const [shareCopied, setShareCopied] = useState(false);
   const checkRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!isTarget) return;
+    const el = document.getElementById(`ri-${rule.id}`);
+    if (!el) return;
+    const timer = setTimeout(() => {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el.classList.add('rule-target-highlight');
+      setTimeout(() => el.classList.remove('rule-target-highlight'), 2400);
+    }, 650);
+    return () => clearTimeout(timer);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleCheck = useCallback(
     (e: React.MouseEvent) => {
@@ -84,6 +116,15 @@ export function RuleItem({
     }, 2000);
   }
 
+  async function handleShare(e: React.MouseEvent<HTMLButtonElement>) {
+    e.stopPropagation();
+    const url = buildRuleUrl(rule.id);
+    history.replaceState(null, '', `#rule-${rule.id}`);
+    await copyToClipboard(url);
+    setShareCopied(true);
+    setTimeout(() => setShareCopied(false), 2000);
+  }
+
   const checkStyle = isDone
     ? { background: level.color, borderColor: level.color, color: '#000' }
     : { borderColor: 'var(--border2)' };
@@ -116,15 +157,21 @@ export function RuleItem({
           {titleNode}
           {rule.note && <span className="rule-note">{rule.note}</span>}
         </div>
-        {rule.exp && (
-          <div className="rule-actions">
+        <div className="rule-actions">
+          <button
+            className={`share-btn${shareCopied ? ' copied' : ''}`}
+            onClick={handleShare}
+            title="Copy link to this rule"
+          >
+            {shareCopied ? '✓' : SVG_LINK}
+          </button>
+          {rule.exp && (
             <button className="test-btn" onClick={handleTest}>
               ✦ Тест
             </button>
-            <span className={`rule-arrow${expOpen ? ' open' : ''}`}>▾</span>
-          </div>
-        )}
-        {!rule.exp && <div className="rule-actions" />}
+          )}
+          {rule.exp && <span className={`rule-arrow${expOpen ? ' open' : ''}`}>▾</span>}
+        </div>
       </div>
       {rule.exp && <RuleExpansion rule={rule} isOpen={expOpen} />}
     </div>
