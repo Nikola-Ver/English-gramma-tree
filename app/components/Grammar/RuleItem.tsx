@@ -84,6 +84,7 @@ export function RuleItem({
         spawnParticles(el, level.color);
         setTimeout(() => el.classList.remove('anim-check'), 600);
       }
+      setExpOpen(false);
       onToggle(rule.id);
     },
     [isDone, level.color, onToggle, rule.id],
