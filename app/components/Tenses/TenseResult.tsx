@@ -74,7 +74,16 @@ export function TenseResult({ tenseKey, tense, breadcrumbs, onRestart }: Props) 
   // Deep-link message card state
   const [deepMsg, setDeepMsg] = useState<string | null>(null);
   const [deepMsgAnchor, setDeepMsgAnchor] = useState<{ x: number; y: number } | null>(null);
+  const [deepMsgRects, setDeepMsgRects] = useState<HighlightRect[]>([]);
+  // Stored so the scroll listener can recompute the anchor without stale closure
   const deepMsgSelDataRef = useRef<SelectionData | null>(null);
+  const deepMsgRef = useRef(deepMsg);
+  deepMsgRef.current = deepMsg;
+
+  // True while the page is scrolling — panels are unmounted so they remount
+  // with their appear animation once scrolling stops
+  const [isScrolling, setIsScrolling] = useState(false);
+  const isScrollingRef = useRef(false);
 
   // Restore deep-link selection on mount
   useEffect(() => {
@@ -92,9 +101,6 @@ export function TenseResult({ tenseKey, tense, breadcrumbs, onRestart }: Props) 
       const range = restoreSelectionData(container, data);
       if (!range) return;
 
-      setDeepHighlighted(true);
-      applySelection(range);
-
       const rect = range.getBoundingClientRect();
       if (rect.width || rect.height) {
         window.scrollTo({
@@ -103,14 +109,32 @@ export function TenseResult({ tenseKey, tense, breadcrumbs, onRestart }: Props) 
         });
       }
 
-      // Show message card if the sender attached one
+      // Show message card if the link sender attached one — keep highlight
+      // via custom rects (same as locked selection) so it persists until closed
       if (data.message) {
         deepMsgSelDataRef.current = data;
         setDeepMsg(data.message);
         setDeepMsgAnchor({ x: (rect.left + rect.right) / 2, y: rect.bottom });
+        setDeepMsgRects(
+          Array.from(range.getClientRects()).map((r) => ({
+            top: r.top,
+            left: r.left,
+            width: r.width,
+            height: r.height,
+          })),
+        );
+      } else {
+        // No message — fall back to native browser selection + glow
+        setDeepHighlighted(true);
+        applySelection(range);
       }
 
-      const stopGlow = () => setDeepHighlighted(false);
+      const stopGlow = () => {
+        if (location.hash.includes('~')) {
+          history.replaceState(null, '', '/');
+        }
+        setDeepHighlighted(false);
+      };
       const opts: AddEventListenerOptions = { once: true, passive: true };
       window.addEventListener('pointerdown', stopGlow, opts);
       window.addEventListener('touchstart', stopGlow, opts);
@@ -122,8 +146,9 @@ export function TenseResult({ tenseKey, tense, breadcrumbs, onRestart }: Props) 
   // Track selection changes to show the ephemeral share/lock popover
   useEffect(() => {
     function onSelectionChange() {
-      // Don't interfere while a lock panel is open
+      // Don't interfere while a lock panel or deep-link message card is open
       if (lockedSelRef.current) return;
+      if (deepMsgRef.current) return;
 
       const container = containerRef.current;
       if (!container) return;
@@ -155,80 +180,97 @@ export function TenseResult({ tenseKey, tense, breadcrumbs, onRestart }: Props) 
     return () => document.removeEventListener('selectionchange', onSelectionChange);
   }, [deepHighlighted]);
 
-  // Keep highlight rects + panel anchor synced after scroll/resize settles
+  // Unified effect: recalculate positions and manage isScrolling state.
+  // Panels are hidden while scrolling (isScrolling=true) and remount with their
+  // CSS appear animation once scrolling stops.
   useEffect(() => {
-    if (!lockedSel) {
+    const hasLock = lockedSel !== null;
+    const hasMsg = deepMsg !== null;
+
+    if (!hasLock) {
       setLockRects([]);
       setLockAnchor(null);
+    }
+    if (!hasMsg) {
+      setDeepMsgRects([]);
+    }
+    if (!hasLock && !hasMsg) {
+      isScrollingRef.current = false;
+      setIsScrolling(false);
       return;
     }
 
-    const { selData } = lockedSel;
-
-    function updateRects() {
-      if (!containerRef.current) return;
-      const range = restoreSelectionData(containerRef.current, selData);
-      if (!range) return;
-      const rects = Array.from(range.getClientRects()).map((r) => ({
-        top: r.top,
-        left: r.left,
-        width: r.width,
-        height: r.height,
-      }));
-      const b = range.getBoundingClientRect();
-      setLockRects(rects);
-      setLockAnchor({ x: (b.left + b.right) / 2, y: b.bottom });
+    function updateAll() {
+      const ls = lockedSelRef.current;
+      if (ls && containerRef.current) {
+        const range = restoreSelectionData(containerRef.current, ls.selData);
+        if (range) {
+          setLockRects(
+            Array.from(range.getClientRects()).map((r) => ({
+              top: r.top,
+              left: r.left,
+              width: r.width,
+              height: r.height,
+            })),
+          );
+          const b = range.getBoundingClientRect();
+          setLockAnchor({ x: (b.left + b.right) / 2, y: b.bottom });
+        }
+      }
+      const msgSel = deepMsgSelDataRef.current;
+      if (msgSel && containerRef.current) {
+        const range = restoreSelectionData(containerRef.current, msgSel);
+        if (range) {
+          setDeepMsgRects(
+            Array.from(range.getClientRects()).map((r) => ({
+              top: r.top,
+              left: r.left,
+              width: r.width,
+              height: r.height,
+            })),
+          );
+          const rect = range.getBoundingClientRect();
+          setDeepMsgAnchor({ x: (rect.left + rect.right) / 2, y: rect.bottom });
+        }
+      }
     }
 
-    // Debounce: recalculate only once scrolling has stopped
     let scrollTimer: ReturnType<typeof setTimeout>;
-    function onScroll() {
-      clearTimeout(scrollTimer);
-      scrollTimer = setTimeout(updateRects, 120);
+
+    function onScrollEnd() {
+      updateAll();
+      isScrollingRef.current = false;
+      setIsScrolling(false);
     }
 
-    updateRects();
-    window.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('scrollend', updateRects, { passive: true });
-    window.addEventListener('resize', updateRects, { passive: true });
-    return () => {
-      window.removeEventListener('scroll', onScroll);
-      window.removeEventListener('scrollend', updateRects);
-      window.removeEventListener('resize', updateRects);
+    function onScrollStart() {
+      if (!isScrollingRef.current) {
+        isScrollingRef.current = true;
+        setIsScrolling(true);
+      }
       clearTimeout(scrollTimer);
+      scrollTimer = setTimeout(onScrollEnd, 150);
+    }
+
+    updateAll();
+    window.addEventListener('scroll', onScrollStart, { passive: true });
+    window.addEventListener(
+      'scrollend',
+      () => {
+        clearTimeout(scrollTimer);
+        onScrollEnd();
+      },
+      { passive: true },
+    );
+    window.addEventListener('resize', updateAll, { passive: true });
+    return () => {
+      clearTimeout(scrollTimer);
+      isScrollingRef.current = false;
+      window.removeEventListener('scroll', onScrollStart);
+      window.removeEventListener('resize', updateAll);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lockedSel !== null]);
-
-  // Reposition the deep-link message card after scroll settles
-  useEffect(() => {
-    if (!deepMsg) return;
-
-    function updateDeepMsgAnchor() {
-      const selData = deepMsgSelDataRef.current;
-      if (!selData || !containerRef.current) return;
-      const range = restoreSelectionData(containerRef.current, selData);
-      if (!range) return;
-      const rect = range.getBoundingClientRect();
-      setDeepMsgAnchor({ x: (rect.left + rect.right) / 2, y: rect.bottom });
-    }
-
-    let scrollTimer: ReturnType<typeof setTimeout>;
-    function onScroll() {
-      clearTimeout(scrollTimer);
-      scrollTimer = setTimeout(updateDeepMsgAnchor, 120);
-    }
-
-    window.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('scrollend', updateDeepMsgAnchor, { passive: true });
-    window.addEventListener('resize', updateDeepMsgAnchor, { passive: true });
-    return () => {
-      window.removeEventListener('scroll', onScroll);
-      window.removeEventListener('scrollend', updateDeepMsgAnchor);
-      window.removeEventListener('resize', updateDeepMsgAnchor);
-      clearTimeout(scrollTimer);
-    };
-  }, [deepMsg]);
+  }, [lockedSel !== null, deepMsg !== null]);
 
   // ── Handlers ──────────────────────────────────────────────────────────────
 
@@ -383,6 +425,7 @@ export function TenseResult({ tenseKey, tense, breadcrumbs, onRestart }: Props) 
 
       {/* Ephemeral share / lock popover */}
       {selPop &&
+        !isScrolling &&
         createPortal(
           <div
             className={`sel-share-pop${selCopied ? ' copied' : ''}`}
@@ -416,6 +459,7 @@ export function TenseResult({ tenseKey, tense, breadcrumbs, onRestart }: Props) 
 
       {/* Locked selection: highlight overlay + message panel */}
       {lockedSel &&
+        !isScrolling &&
         lockAnchor &&
         createPortal(
           <>
@@ -479,31 +523,46 @@ export function TenseResult({ tenseKey, tense, breadcrumbs, onRestart }: Props) 
 
       {/* Deep-link message card shown to the recipient */}
       {deepMsg &&
+        !isScrolling &&
         deepMsgAnchor &&
         createPortal(
-          <div
-            className="sel-deep-msg-card"
-            style={{ left: deepMsgAnchor.x, top: deepMsgAnchor.y + 10 }}
-          >
-            <div className="sel-deep-msg-header">
-              <span className="sel-deep-msg-title">💬 Сообщение</span>
-              <button
-                className="sel-deep-msg-close"
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => {
-                  setDeepMsg(null);
-                  deepMsgSelDataRef.current = null;
-                  if (location.hash.includes('~')) {
-                    history.replaceState(null, '', '/');
-                  }
-                }}
-                title="Закрыть"
-              >
-                ×
-              </button>
+          <>
+            {/* Highlight rects — persist until the card is closed */}
+            <div className="sel-highlight-layer">
+              {deepMsgRects.map((r, i) => (
+                <div
+                  key={i}
+                  className="sel-highlight-rect sel-highlight-rect--deep"
+                  style={{ top: r.top, left: r.left, width: r.width, height: r.height }}
+                />
+              ))}
             </div>
-            <div className="sel-deep-msg-body">{deepMsg}</div>
-          </div>,
+
+            <div
+              className="sel-deep-msg-card"
+              style={{ left: deepMsgAnchor.x, top: deepMsgAnchor.y + 10 }}
+            >
+              <div className="sel-deep-msg-header">
+                <span className="sel-deep-msg-title">💬 Сообщение</span>
+                <button
+                  className="sel-deep-msg-close"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => {
+                    setDeepMsg(null);
+                    setDeepMsgRects([]);
+                    deepMsgSelDataRef.current = null;
+                    if (location.hash.includes('~')) {
+                      history.replaceState(null, '', '/');
+                    }
+                  }}
+                  title="Закрыть"
+                >
+                  ×
+                </button>
+              </div>
+              <div className="sel-deep-msg-body">{deepMsg}</div>
+            </div>
+          </>,
           document.body,
         )}
     </>

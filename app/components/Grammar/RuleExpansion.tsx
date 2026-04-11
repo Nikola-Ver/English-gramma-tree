@@ -557,6 +557,7 @@ export function RuleExpansion({ rule, isOpen }: Props) {
 
       {/* Deep-link message card shown to the recipient */}
       {deepMsg &&
+        !isScrolling &&
         deepMsgAnchor &&
         createPortal(
           <>
@@ -597,7 +598,6 @@ export function RuleExpansion({ rule, isOpen }: Props) {
             </div>
           </>,
           document.body,
-          isScrolling ? undefined : 'deep-msg',
         )}
     </>
   );
