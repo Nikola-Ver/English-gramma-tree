@@ -39,6 +39,24 @@ An interactive web application for learning English grammar rules and verb tense
 - Generate a test prompt for any specific rule or for all completed rules
 - One-click copy to clipboard — paste into ChatGPT or Claude
 
+### Shareable Deep Links
+
+Every grammar rule and every tense has a **share button** (⛓) that copies a direct URL to it. Opening the link scrolls straight to the rule, expands it, and highlights the card with an animated glow so it's immediately obvious what to look at.
+
+Beyond sharing a whole rule, you can share a **specific passage** inside it:
+
+1. Select any text inside an expanded rule or tense card.
+2. A floating **"⛓ Поделиться выделенным текстом"** button appears below your selection.
+3. Click it — the URL is copied to the clipboard with the exact text range encoded in the hash.
+
+![Selecting text to share](screenshots/deep-link-copy.png)
+
+When the recipient opens the link, the app navigates to the rule, scrolls it into view, and renders the shared passage **highlighted in vivid green** with a pulsing border glow. The highlight persists until the first interaction (click, scroll, or touch), after which normal behaviour resumes.
+
+![Opening a deep link with highlighted text](screenshots/deep-link-open.png)
+
+Deep links work across all three tabs — **Grammar**, **Murphy**, and **Tenses**.
+
 ---
 
 ## Tech Stack
@@ -71,8 +89,10 @@ english-grammar-tree/
 │   │   └── useProgress.ts  # Progress state (localStorage)
 │   └── utils/
 │       ├── clipboard.ts    # Copy to clipboard
+│       ├── deepLink.ts     # Build and parse shareable deep-link URLs
 │       ├── particles.ts    # Particle animation on rule completion
-│       └── prompts.ts      # AI prompt builders
+│       ├── prompts.ts      # AI prompt builders
+│       └── selection.ts    # DOM selection helpers (encode / restore text ranges)
 ├── index.html
 ├── vite.config.ts
 ├── biome.json

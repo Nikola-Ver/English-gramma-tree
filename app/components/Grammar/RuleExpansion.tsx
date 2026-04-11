@@ -124,6 +124,10 @@ export function RuleExpansion({ rule, isOpen }: Props) {
     function onSelectionChange() {
       const container = ref.current;
       if (!container) return;
+      if (deepHighlighted) {
+        setSelPop(null);
+        return;
+      }
 
       const sel = window.getSelection();
       if (!sel || sel.rangeCount === 0 || sel.isCollapsed) {
@@ -150,7 +154,7 @@ export function RuleExpansion({ rule, isOpen }: Props) {
 
     document.addEventListener('selectionchange', onSelectionChange);
     return () => document.removeEventListener('selectionchange', onSelectionChange);
-  }, [isOpen]);
+  }, [isOpen, deepHighlighted]);
 
   async function handleSelShare() {
     if (!selPop || !ref.current) return;

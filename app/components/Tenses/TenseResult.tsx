@@ -85,6 +85,10 @@ export function TenseResult({ tenseKey, tense, breadcrumbs, onRestart }: Props) 
     function onSelectionChange() {
       const container = containerRef.current;
       if (!container) return;
+      if (deepHighlighted) {
+        setSelPop(null);
+        return;
+      }
       const sel = window.getSelection();
       if (!sel || sel.rangeCount === 0 || sel.isCollapsed) {
         setSelPop(null);
@@ -107,7 +111,7 @@ export function TenseResult({ tenseKey, tense, breadcrumbs, onRestart }: Props) 
 
     document.addEventListener('selectionchange', onSelectionChange);
     return () => document.removeEventListener('selectionchange', onSelectionChange);
-  }, []);
+  }, [deepHighlighted]);
 
   async function handleSelShare() {
     if (!selPop || !containerRef.current) return;
