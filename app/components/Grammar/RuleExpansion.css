@@ -94,7 +94,7 @@
   padding: 0;
   list-style: disc;
 }
-.mistakes-block ul li {
+.rule-exp .mistakes-block li {
   margin-bottom: 3px;
   line-height: 1.6;
 }

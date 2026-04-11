@@ -55,8 +55,8 @@ export function TenseTree({ onSelectTense }: Props) {
     <>
       {path.length > 0 && (
         <div className="tt-breadcrumb">
-          {path.map((p, i) => (
-            <span key={i} className="tt-crumb">
+          {path.map((p) => (
+            <span key={p.a} className="tt-crumb">
               {p.a}
             </span>
           ))}
@@ -69,7 +69,7 @@ export function TenseTree({ onSelectTense }: Props) {
         </div>
         <div className="tt-choices">
           {current.choices.map((c, i) => (
-            <div key={i} className="tt-choice" onClick={() => choose(i)}>
+            <div key={c.label} className="tt-choice" onClick={() => choose(i)}>
               <span>{c.icon}</span>
               <span>{c.label}</span>
               <span className="choice-arrow">›</span>

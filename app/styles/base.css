@@ -61,6 +61,7 @@
 .no-transitions *,
 .no-transitions *::before,
 .no-transitions *::after {
+  /* biome-ignore lint/complexity/noImportantStyles: needed to override all inline/component transitions */
   transition: none !important;
 }
 

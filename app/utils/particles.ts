@@ -13,7 +13,8 @@ export function spawnParticles(chkEl: HTMLElement, color: string): void {
   canvas.style.height = '100vh';
   document.body.appendChild(canvas);
 
-  const ctx = canvas.getContext('2d')!;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
 
   let resolvedColor = color;
   if (color?.startsWith('var(--')) {
@@ -65,6 +66,10 @@ export function spawnParticles(chkEl: HTMLElement, color: string): void {
   let start: number | null = null;
   let prev: number | null = null;
   function frame(ts: number) {
+    if (!ctx) {
+      canvas.remove();
+      return;
+    }
     if (!start) start = ts;
     const dt = Math.min((ts - (prev ?? ts)) / (1000 / 60), 3);
     prev = ts;

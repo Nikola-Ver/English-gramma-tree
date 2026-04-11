@@ -30,7 +30,7 @@ function decodeSelection(encoded: string): SelectionData | null {
   const startOffset = Number(p1);
   const endPath = p2 ? p2.split('-').map(Number) : [];
   const endOffset = Number(p3);
-  if ([...startPath, startOffset, ...endPath, endOffset].some(isNaN)) return null;
+  if ([...startPath, startOffset, ...endPath, endOffset].some(Number.isNaN)) return null;
   let message: string | undefined;
   if (rest.length > 0) {
     try {

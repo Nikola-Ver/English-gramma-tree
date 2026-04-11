@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef } from 'react';
 import './RuleItem.css';
 import { useState } from 'react';
 import type { Category, Level, Rule } from '../../data/grammar';
+import { IconCheck, IconShare } from '../../icons';
 import { copyToClipboard } from '../../utils/clipboard';
 import { buildRuleUrl } from '../../utils/deepLink';
 import { spawnParticles } from '../../utils/particles';
@@ -20,34 +21,6 @@ interface Props {
   promptBuilder?: (rule: Rule, level: Level, cat: Category) => string;
 }
 
-const SVG_CHK = (
-  <svg className="chk-svg" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path
-      d="M4 9.5L7.5 13L14 6"
-      stroke="#000"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
-);
-
-const SVG_LINK = (
-  <svg
-    width="11"
-    height="11"
-    viewBox="0 0 11 11"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1.5"
-    strokeLinecap="round"
-  >
-    <path d="M4.5 6.5l2-2" />
-    <path d="M3.5 5L2 6.5a2.2 2.2 0 003.1 3.1L6.5 8" />
-    <path d="M7.5 6L9 4.5A2.2 2.2 0 005.9 1.4L4.5 3" />
-  </svg>
-);
-
 export function RuleItem({
   rule,
   level,
@@ -62,6 +35,7 @@ export function RuleItem({
   const [shareCopied, setShareCopied] = useState(false);
   const checkRef = useRef<HTMLDivElement>(null);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional mount-only scroll-to-target
   useEffect(() => {
     if (!isTarget) return;
     const el = document.getElementById(`ri-${rule.id}`);
@@ -72,7 +46,7 @@ export function RuleItem({
       setTimeout(() => el.classList.remove('rule-target-highlight'), 2400);
     }, 650);
     return () => clearTimeout(timer);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleCheck = useCallback(
     (e: React.MouseEvent) => {
@@ -152,7 +126,7 @@ export function RuleItem({
     >
       <div className="rule-top" onClick={handleExpToggle}>
         <div ref={checkRef} className="rule-check" onClick={handleCheck} style={checkStyle}>
-          {isDone && SVG_CHK}
+          {isDone && <IconCheck className="chk-svg" />}
         </div>
         <div className="rule-main">
           {titleNode}
@@ -164,7 +138,7 @@ export function RuleItem({
             onClick={handleShare}
             title="Copy link to this rule"
           >
-            {shareCopied ? '✓' : SVG_LINK}
+            {shareCopied ? '✓' : <IconShare />}
           </button>
           {rule.exp && (
             <button className="test-btn" onClick={handleTest}>

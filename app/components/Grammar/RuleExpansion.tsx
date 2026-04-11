@@ -3,9 +3,16 @@ import { createPortal } from 'react-dom';
 import './RuleExpansion.css';
 import '../selectionLock.css';
 import type { Rule } from '../../data/grammar';
+import { IconNote, IconPin, IconShare, IconTrash } from '../../icons';
 import { copyToClipboard } from '../../utils/clipboard';
 import type { SelectionData } from '../../utils/deepLink';
 import { buildRuleUrl } from '../../utils/deepLink';
+import {
+  deleteNote,
+  getNotesForContext,
+  type StoredNote,
+  saveNote,
+} from '../../utils/notesStorage';
 import {
   applySelection,
   getSelectionData,
@@ -38,10 +45,20 @@ interface HighlightRect {
   height: number;
 }
 
+interface NoteDraft {
+  selData: SelectionData;
+  text: string;
+  message: string;
+  rects: HighlightRect[];
+  anchor: { x: number; y: number };
+}
+
 export function RuleExpansion({ rule, isOpen }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const [everOpened, setEverOpened] = useState(false);
   const [selPop, setSelPop] = useState<SelectionPop | null>(null);
+  const selPopRef = useRef(selPop);
+  selPopRef.current = selPop;
   const [selCopied, setSelCopied] = useState(false);
   const [deepHighlighted, setDeepHighlighted] = useState(false);
   const highlightApplied = useRef(false);
@@ -58,15 +75,33 @@ export function RuleExpansion({ rule, isOpen }: Props) {
   const [deepMsg, setDeepMsg] = useState<string | null>(null);
   const [deepMsgAnchor, setDeepMsgAnchor] = useState<{ x: number; y: number } | null>(null);
   const [deepMsgRects, setDeepMsgRects] = useState<HighlightRect[]>([]);
-  // Stored so the scroll listener can recompute the anchor without stale closure
   const deepMsgSelDataRef = useRef<SelectionData | null>(null);
   const deepMsgRef = useRef(deepMsg);
   deepMsgRef.current = deepMsg;
+
+  // Notes state
+  const [notes, setNotes] = useState<StoredNote[]>([]);
+  const notesRef = useRef(notes);
+  notesRef.current = notes;
+  const [noteRects, setNoteRects] = useState<Map<string, HighlightRect[]>>(new Map());
+  const [noteDraft, setNoteDraft] = useState<NoteDraft | null>(null);
+  const noteDraftRef = useRef(noteDraft);
+  noteDraftRef.current = noteDraft;
+  const [activeNoteId, setActiveNoteId] = useState<string | null>(null);
+  const activeNoteIdRef = useRef(activeNoteId);
+  activeNoteIdRef.current = activeNoteId;
+  const [activeNoteAnchor, setActiveNoteAnchor] = useState<{ x: number; y: number } | null>(null);
 
   // True while the page is scrolling — panels are unmounted so they remount
   // with their appear animation once scrolling stops
   const [isScrolling, setIsScrolling] = useState(false);
   const isScrollingRef = useRef(false);
+
+  // Load notes for this rule once the content is first opened
+  useEffect(() => {
+    if (!everOpened) return;
+    setNotes(getNotesForContext(rule.id, 'rule'));
+  }, [everOpened, rule.id]);
 
   // Restore a path-based selection from the URL hash once the content renders
   useEffect(() => {
@@ -82,7 +117,7 @@ export function RuleExpansion({ rule, isOpen }: Props) {
     const so = Number(parts[1]);
     const ep = parts[2] ? parts[2].split('-').map(Number) : [];
     const eo = Number(parts[3]);
-    if ([...sp, so, ...ep, eo].some(isNaN)) return;
+    if ([...sp, so, ...ep, eo].some(Number.isNaN)) return;
 
     let msg: string | undefined;
     if (parts.length > 4) {
@@ -114,8 +149,6 @@ export function RuleExpansion({ rule, isOpen }: Props) {
         });
       }
 
-      // Show message card if the link sender attached one — keep highlight
-      // via custom rects (same as locked selection) so it persists until closed
       if (data.message) {
         deepMsgSelDataRef.current = data;
         setDeepMsg(data.message);
@@ -129,7 +162,6 @@ export function RuleExpansion({ rule, isOpen }: Props) {
           })),
         );
       } else {
-        // No message — fall back to native browser selection + glow
         setDeepHighlighted(true);
         applySelection(range);
       }
@@ -193,7 +225,7 @@ export function RuleExpansion({ rule, isOpen }: Props) {
     }
   }, [isOpen, everOpened]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Track selection changes to show the ephemeral share/lock popover
+  // Track selection changes to show the ephemeral share/lock/note popover
   useEffect(() => {
     if (!isOpen) {
       setSelPop(null);
@@ -201,9 +233,9 @@ export function RuleExpansion({ rule, isOpen }: Props) {
     }
 
     function onSelectionChange() {
-      // Don't interfere while a lock panel or deep-link message card is open
       if (lockedSelRef.current) return;
       if (deepMsgRef.current) return;
+      if (noteDraftRef.current) return;
 
       const container = ref.current;
       if (!container) return;
@@ -240,11 +272,12 @@ export function RuleExpansion({ rule, isOpen }: Props) {
   }, [isOpen, deepHighlighted]);
 
   // Unified effect: recalculate positions and manage isScrolling state.
-  // Panels are hidden while scrolling (isScrolling=true) and remount with their
-  // CSS appear animation once scrolling stops.
   useEffect(() => {
     const hasLock = lockedSel !== null;
     const hasMsg = deepMsg !== null;
+    const hasPop = selPop !== null;
+    const hasNotes = notes.length > 0;
+    const hasDraft = noteDraft !== null;
 
     if (!hasLock) {
       setLockRects([]);
@@ -253,16 +286,22 @@ export function RuleExpansion({ rule, isOpen }: Props) {
     if (!hasMsg) {
       setDeepMsgRects([]);
     }
-    if (!hasLock && !hasMsg) {
+    if (!hasNotes && !hasDraft) {
+      setNoteRects(new Map());
+    }
+
+    if (!hasLock && !hasMsg && !hasPop && !hasNotes && !hasDraft) {
       isScrollingRef.current = false;
       setIsScrolling(false);
       return;
     }
 
     function updateAll() {
+      const container = ref.current;
+
       const ls = lockedSelRef.current;
-      if (ls && ref.current) {
-        const range = restoreSelectionData(ref.current, ls.selData);
+      if (ls && container) {
+        const range = restoreSelectionData(container, ls.selData);
         if (range) {
           setLockRects(
             Array.from(range.getClientRects()).map((r) => ({
@@ -276,9 +315,10 @@ export function RuleExpansion({ rule, isOpen }: Props) {
           setLockAnchor({ x: (b.left + b.right) / 2, y: b.bottom });
         }
       }
+
       const msgSel = deepMsgSelDataRef.current;
-      if (msgSel && ref.current) {
-        const range = restoreSelectionData(ref.current, msgSel);
+      if (msgSel && container) {
+        const range = restoreSelectionData(container, msgSel);
         if (range) {
           setDeepMsgRects(
             Array.from(range.getClientRects()).map((r) => ({
@@ -290,6 +330,69 @@ export function RuleExpansion({ rule, isOpen }: Props) {
           );
           const rect = range.getBoundingClientRect();
           setDeepMsgAnchor({ x: (rect.left + rect.right) / 2, y: rect.bottom });
+        }
+      }
+
+      const sp = selPopRef.current;
+      if (sp && container) {
+        const range = restoreSelectionData(container, sp.selData);
+        if (range) {
+          const rect = range.getBoundingClientRect();
+          setSelPop((prev) =>
+            prev ? { ...prev, x: (rect.left + rect.right) / 2, y: rect.bottom } : null,
+          );
+        }
+      }
+
+      // Update note highlight rects
+      const ns = notesRef.current;
+      if (ns.length > 0 && container) {
+        const newMap = new Map<string, HighlightRect[]>();
+        for (const note of ns) {
+          const range = restoreSelectionData(container, note.selData);
+          if (range) {
+            newMap.set(
+              note.id,
+              Array.from(range.getClientRects()).map((r) => ({
+                top: r.top,
+                left: r.left,
+                width: r.width,
+                height: r.height,
+              })),
+            );
+          }
+        }
+        setNoteRects(newMap);
+      }
+
+      // Update active note card anchor
+      const anId = activeNoteIdRef.current;
+      if (anId && container) {
+        const note = notesRef.current.find((n) => n.id === anId);
+        if (note) {
+          const range = restoreSelectionData(container, note.selData);
+          if (range) {
+            const b = range.getBoundingClientRect();
+            setActiveNoteAnchor({ x: (b.left + b.right) / 2, y: b.bottom });
+          }
+        }
+      }
+
+      // Update note draft rects / anchor
+      const nd = noteDraftRef.current;
+      if (nd && container) {
+        const range = restoreSelectionData(container, nd.selData);
+        if (range) {
+          const rects = Array.from(range.getClientRects()).map((r) => ({
+            top: r.top,
+            left: r.left,
+            width: r.width,
+            height: r.height,
+          }));
+          const b = range.getBoundingClientRect();
+          setNoteDraft((prev) =>
+            prev ? { ...prev, rects, anchor: { x: (b.left + b.right) / 2, y: b.bottom } } : null,
+          );
         }
       }
     }
@@ -328,8 +431,7 @@ export function RuleExpansion({ rule, isOpen }: Props) {
       window.removeEventListener('scroll', onScrollStart);
       window.removeEventListener('resize', updateAll);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lockedSel !== null, deepMsg !== null]);
+  }, [lockedSel, deepMsg, selPop, notes, noteDraft]);
 
   // ── Handlers ──────────────────────────────────────────────────────────────
 
@@ -348,7 +450,6 @@ export function RuleExpansion({ rule, isOpen }: Props) {
     const handle = lockSelection(ref.current);
     if (!handle) return;
 
-    // Capture viewport-relative rects before clearing the selection
     const sel = window.getSelection();
     const range = sel && sel.rangeCount > 0 ? sel.getRangeAt(0) : null;
     if (range) {
@@ -379,7 +480,73 @@ export function RuleExpansion({ rule, isOpen }: Props) {
     setTimeout(() => setLockCopied(false), 2000);
   }
 
+  function handleNoteStart() {
+    if (!selPop || !ref.current) return;
+    const sel = window.getSelection();
+    const range = sel && sel.rangeCount > 0 ? sel.getRangeAt(0) : null;
+    const rects = range
+      ? Array.from(range.getClientRects()).map((r) => ({
+          top: r.top,
+          left: r.left,
+          width: r.width,
+          height: r.height,
+        }))
+      : [];
+    const anchor = range
+      ? (() => {
+          const b = range.getBoundingClientRect();
+          return { x: (b.left + b.right) / 2, y: b.bottom };
+        })()
+      : { x: selPop.x, y: selPop.y };
+
+    window.getSelection()?.removeAllRanges();
+    setNoteDraft({ selData: selPop.selData, text: selPop.text, message: '', rects, anchor });
+    setSelPop(null);
+  }
+
+  function handleNoteSave() {
+    if (!noteDraft) return;
+    const note: StoredNote = {
+      id: crypto.randomUUID(),
+      contextId: rule.id,
+      contextType: 'rule',
+      selData: noteDraft.selData,
+      text: noteDraft.text,
+      message: noteDraft.message,
+      createdAt: Date.now(),
+    };
+    saveNote(note);
+    setNotes((prev) => [...prev, note]);
+    setNoteDraft(null);
+  }
+
+  function handleNoteDelete(id: string) {
+    deleteNote(id);
+    setNotes((prev) => prev.filter((n) => n.id !== id));
+    if (activeNoteId === id) {
+      setActiveNoteId(null);
+      setActiveNoteAnchor(null);
+    }
+  }
+
+  function handleNoteHighlightClick(noteId: string, rects: HighlightRect[]) {
+    if (activeNoteId === noteId) {
+      setActiveNoteId(null);
+      setActiveNoteAnchor(null);
+      return;
+    }
+    setActiveNoteId(noteId);
+    if (rects.length > 0) {
+      const maxBottom = Math.max(...rects.map((r) => r.top + r.height));
+      const minLeft = Math.min(...rects.map((r) => r.left));
+      const maxRight = Math.max(...rects.map((r) => r.left + r.width));
+      setActiveNoteAnchor({ x: (minLeft + maxRight) / 2, y: maxBottom });
+    }
+  }
+
   if (!rule.exp) return null;
+
+  const activeNote = notes.find((n) => n.id === activeNoteId) ?? null;
 
   return (
     <>
@@ -389,8 +556,8 @@ export function RuleExpansion({ rule, isOpen }: Props) {
             <div dangerouslySetInnerHTML={{ __html: rule.exp }} />
             {rule.ex && rule.ex.length > 0 && (
               <ul className="ex-list">
-                {rule.ex.map(([en, ru], i) => (
-                  <li key={i}>
+                {rule.ex.map(([en, ru]) => (
+                  <li key={en}>
                     {en}
                     {ru && <span className="tr">{ru}</span>}
                   </li>
@@ -412,8 +579,8 @@ export function RuleExpansion({ rule, isOpen }: Props) {
               <div className="markers-block">
                 <strong>⏱ Маркеры времени</strong>
                 <div className="markers-wrap">
-                  {rule.markers.tags.map((t, i) => (
-                    <span key={i} className="marker-tag">
+                  {rule.markers.tags.map((t) => (
+                    <span key={t} className="marker-tag">
                       {t}
                     </span>
                   ))}
@@ -425,19 +592,19 @@ export function RuleExpansion({ rule, isOpen }: Props) {
               <div className="mistakes-block">
                 <strong>🚫 Типичные ошибки:</strong>
                 <ul>
-                  {rule.mistakes.map((m, i) => (
-                    <li key={i} dangerouslySetInnerHTML={{ __html: m }} />
+                  {rule.mistakes.map((m) => (
+                    <li key={m} dangerouslySetInnerHTML={{ __html: m }} />
                   ))}
                 </ul>
               </div>
             )}
             {rule.links && rule.links.length > 0 && (
               <div className="link-row">
-                {rule.links.map((l, i) => {
+                {rule.links.map((l) => {
                   const icon = l.type === 'yt' ? '▶' : l.type === 'ru' ? 'RU' : 'EN';
                   return (
                     <a
-                      key={i}
+                      key={l.url}
                       className={`lnk ${l.type}`}
                       href={l.url}
                       target="_blank"
@@ -455,12 +622,12 @@ export function RuleExpansion({ rule, isOpen }: Props) {
         )}
       </div>
 
-      {/* Ephemeral share / lock popover */}
+      {/* Ephemeral share / lock / note popover */}
       {selPop &&
         !isScrolling &&
         createPortal(
           <div
-            className={`sel-share-pop${selCopied ? ' copied' : ''}`}
+            className="sel-share-pop"
             style={{
               position: 'fixed',
               left: selPop.x,
@@ -471,18 +638,28 @@ export function RuleExpansion({ rule, isOpen }: Props) {
           >
             <div className="sel-share-pop-inner">
               <button
-                className="sel-share-btn"
+                className={`sel-pop-btn sel-pop-btn--share${selCopied ? ' copied' : ''}`}
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={handleSelShare}
+                title="Поделиться"
               >
-                {selCopied ? '✓ Ссылка скопирована' : '⛓ Поделиться'}
+                <IconShare />
               </button>
               <button
-                className="sel-lock-btn"
+                className="sel-pop-btn sel-pop-btn--pin"
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={handleLock}
+                title="Закрепить"
               >
-                📌 Закрепить
+                <IconPin />
+              </button>
+              <button
+                className="sel-pop-btn sel-pop-btn--note"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={handleNoteStart}
+                title="Пометка"
+              >
+                <IconNote />
               </button>
             </div>
           </div>,
@@ -495,9 +672,9 @@ export function RuleExpansion({ rule, isOpen }: Props) {
         lockAnchor &&
         createPortal(
           <>
-            {/* Highlight rects rendered in fixed space so they scroll with the page */}
             <div className="sel-highlight-layer">
               {lockRects.map((r, i) => (
+                // biome-ignore lint/suspicious/noArrayIndexKey: geometry rects have no natural key
                 <div
                   key={i}
                   className="sel-highlight-rect"
@@ -506,11 +683,10 @@ export function RuleExpansion({ rule, isOpen }: Props) {
               ))}
             </div>
 
-            {/* Message panel */}
             <div className="sel-lock-panel" style={{ left: lockAnchor.x, top: lockAnchor.y + 10 }}>
               <div className="sel-lock-panel-header">
                 <div className="sel-lock-panel-title">
-                  📌
+                  <IconPin size={11} />
                   <span className="sel-lock-panel-preview">
                     "
                     {lockedSel.text.length > 32
@@ -555,15 +731,155 @@ export function RuleExpansion({ rule, isOpen }: Props) {
           document.body,
         )}
 
+      {/* Note highlight rects (persistent, yellow, clickable) */}
+      {notes.length > 0 &&
+        !isScrolling &&
+        createPortal(
+          <div className="sel-highlight-layer">
+            {notes.map((note) => {
+              const rects = noteRects.get(note.id) ?? [];
+              return rects.map((r, i) => (
+                // biome-ignore lint/suspicious/noArrayIndexKey: geometry rects have no natural key
+                <div
+                  key={`${note.id}-${i}`}
+                  className="sel-highlight-rect--note"
+                  style={{ top: r.top, left: r.left, width: r.width, height: r.height }}
+                  onClick={() => handleNoteHighlightClick(note.id, rects)}
+                />
+              ));
+            })}
+          </div>,
+          document.body,
+        )}
+
+      {/* Note draft panel (creating a new note) */}
+      {noteDraft &&
+        !isScrolling &&
+        createPortal(
+          <>
+            {/* Preview highlight for the selected text while writing the note */}
+            <div className="sel-highlight-layer" style={{ zIndex: 9995 }}>
+              {noteDraft.rects.map((r, i) => (
+                // biome-ignore lint/suspicious/noArrayIndexKey: geometry rects have no natural key
+                <div
+                  key={i}
+                  className="sel-highlight-rect--note"
+                  style={{ top: r.top, left: r.left, width: r.width, height: r.height }}
+                />
+              ))}
+            </div>
+
+            <div
+              className="sel-note-panel"
+              style={{ left: noteDraft.anchor.x, top: noteDraft.anchor.y + 10 }}
+            >
+              <div className="sel-note-panel-header">
+                <div className="sel-note-panel-title">
+                  <IconNote size={11} />
+                  <span className="sel-note-panel-preview">
+                    "
+                    {noteDraft.text.length > 28
+                      ? `${noteDraft.text.slice(0, 28)}…`
+                      : noteDraft.text}
+                    "
+                  </span>
+                </div>
+                <button
+                  className="sel-note-close"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => setNoteDraft(null)}
+                  title="Отмена"
+                >
+                  ×
+                </button>
+              </div>
+              <div className="sel-note-panel-body">
+                <textarea
+                  className="sel-note-textarea"
+                  placeholder="Ваша пометка…"
+                  value={noteDraft.message}
+                  onChange={(e) =>
+                    setNoteDraft((prev) => (prev ? { ...prev, message: e.target.value } : null))
+                  }
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) handleNoteSave();
+                  }}
+                />
+                <button
+                  className="sel-note-save-btn"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={handleNoteSave}
+                >
+                  Сохранить
+                </button>
+              </div>
+            </div>
+          </>,
+          document.body,
+        )}
+
+      {/* Note reading card (shown when clicking a yellow highlight) */}
+      {activeNote &&
+        !isScrolling &&
+        activeNoteAnchor &&
+        createPortal(
+          <div
+            className="sel-note-card"
+            style={{ left: activeNoteAnchor.x, top: activeNoteAnchor.y + 10 }}
+          >
+            <div className="sel-note-card-header">
+              <div className="sel-note-card-title">
+                <IconNote size={11} />
+                <span className="sel-note-card-excerpt">
+                  "
+                  {activeNote.text.length > 26
+                    ? `${activeNote.text.slice(0, 26)}…`
+                    : activeNote.text}
+                  "
+                </span>
+              </div>
+              <div className="sel-note-card-actions">
+                <button
+                  className="sel-note-card-delete"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => handleNoteDelete(activeNote.id)}
+                  title="Удалить пометку"
+                >
+                  <IconTrash />
+                </button>
+                <button
+                  className="sel-note-card-close"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => {
+                    setActiveNoteId(null);
+                    setActiveNoteAnchor(null);
+                  }}
+                  title="Закрыть"
+                >
+                  ×
+                </button>
+              </div>
+            </div>
+            <div className="sel-note-card-body">
+              {activeNote.message ? (
+                activeNote.message
+              ) : (
+                <span className="sel-note-card-empty">Пометка без текста</span>
+              )}
+            </div>
+          </div>,
+          document.body,
+        )}
+
       {/* Deep-link message card shown to the recipient */}
       {deepMsg &&
         !isScrolling &&
         deepMsgAnchor &&
         createPortal(
           <>
-            {/* Highlight rects — persist until the card is closed */}
             <div className="sel-highlight-layer">
               {deepMsgRects.map((r, i) => (
+                // biome-ignore lint/suspicious/noArrayIndexKey: geometry rects have no natural key
                 <div
                   key={i}
                   className="sel-highlight-rect sel-highlight-rect--deep"

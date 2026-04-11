@@ -27,7 +27,8 @@ export function Timeline({ selectedKey, onSelectTense }: Props) {
     canvas.height = H * dpr;
     canvas.style.width = `${W}px`;
     canvas.style.height = `${H}px`;
-    const ctx = canvas.getContext('2d')!;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
     ctx.scale(dpr, dpr);
 
     const cs = getComputedStyle(document.documentElement);
