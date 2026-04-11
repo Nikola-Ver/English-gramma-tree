@@ -3,23 +3,43 @@ export interface SelectionData {
   startOffset: number;
   endPath: number[];
   endOffset: number;
+  /** Optional message attached by the sender when locking a selection. */
+  message?: string;
 }
 
 function encodeSelection(data: SelectionData): string {
-  return [data.startPath.join('-'), data.startOffset, data.endPath.join('-'), data.endOffset].join(
-    ':',
-  );
+  const core = [
+    data.startPath.join('-'),
+    data.startOffset,
+    data.endPath.join('-'),
+    data.endOffset,
+  ].join(':');
+  if (data.message) {
+    // base64-encode so the message doesn't introduce colons or URL-unsafe chars
+    const b64 = btoa(unescape(encodeURIComponent(data.message)));
+    return `${core}:${b64}`;
+  }
+  return core;
 }
 
 function decodeSelection(encoded: string): SelectionData | null {
   const parts = encoded.split(':');
-  if (parts.length !== 4) return null;
-  const startPath = parts[0] ? parts[0].split('-').map(Number) : [];
-  const startOffset = Number(parts[1]);
-  const endPath = parts[2] ? parts[2].split('-').map(Number) : [];
-  const endOffset = Number(parts[3]);
+  if (parts.length < 4) return null;
+  const [p0, p1, p2, p3, ...rest] = parts;
+  const startPath = p0 ? p0.split('-').map(Number) : [];
+  const startOffset = Number(p1);
+  const endPath = p2 ? p2.split('-').map(Number) : [];
+  const endOffset = Number(p3);
   if ([...startPath, startOffset, ...endPath, endOffset].some(isNaN)) return null;
-  return { startPath, startOffset, endPath, endOffset };
+  let message: string | undefined;
+  if (rest.length > 0) {
+    try {
+      message = decodeURIComponent(escape(atob(rest.join(':'))));
+    } catch {
+      // ignore malformed message
+    }
+  }
+  return { startPath, startOffset, endPath, endOffset, message };
 }
 
 /** Returns a shareable URL for a rule, optionally with a path-based selection. */

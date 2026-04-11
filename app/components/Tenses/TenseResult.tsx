@@ -4,7 +4,13 @@ import type { Tense } from '../../data/tenses';
 import { copyToClipboard } from '../../utils/clipboard';
 import type { SelectionData } from '../../utils/deepLink';
 import { buildTenseUrl, parseTenseHash } from '../../utils/deepLink';
-import { applySelection, getSelectionData, restoreSelectionData } from '../../utils/selection';
+import {
+  applySelection,
+  getSelectionData,
+  lockSelection,
+  restoreSelectionData,
+} from '../../utils/selection';
+import '../selectionLock.css';
 
 interface Props {
   tenseKey: string;
@@ -18,6 +24,19 @@ interface SelectionPop {
   text: string;
   x: number;
   y: number;
+}
+
+interface LockedSel {
+  selData: SelectionData;
+  text: string;
+  message: string;
+}
+
+interface HighlightRect {
+  top: number;
+  left: number;
+  width: number;
+  height: number;
 }
 
 const SVG_LINK = (
@@ -43,6 +62,19 @@ export function TenseResult({ tenseKey, tense, breadcrumbs, onRestart }: Props) 
   const [shareCopied, setShareCopied] = useState(false);
   const [deepHighlighted, setDeepHighlighted] = useState(false);
   const highlightApplied = useRef(false);
+
+  // Locked selection state
+  const [lockedSel, setLockedSel] = useState<LockedSel | null>(null);
+  const [lockCopied, setLockCopied] = useState(false);
+  const [lockRects, setLockRects] = useState<HighlightRect[]>([]);
+  const [lockAnchor, setLockAnchor] = useState<{ x: number; y: number } | null>(null);
+  const lockedSelRef = useRef(lockedSel);
+  lockedSelRef.current = lockedSel;
+
+  // Deep-link message card state
+  const [deepMsg, setDeepMsg] = useState<string | null>(null);
+  const [deepMsgAnchor, setDeepMsgAnchor] = useState<{ x: number; y: number } | null>(null);
+  const deepMsgSelDataRef = useRef<SelectionData | null>(null);
 
   // Restore deep-link selection on mount
   useEffect(() => {
@@ -71,6 +103,13 @@ export function TenseResult({ tenseKey, tense, breadcrumbs, onRestart }: Props) 
         });
       }
 
+      // Show message card if the sender attached one
+      if (data.message) {
+        deepMsgSelDataRef.current = data;
+        setDeepMsg(data.message);
+        setDeepMsgAnchor({ x: (rect.left + rect.right) / 2, y: rect.bottom });
+      }
+
       const stopGlow = () => setDeepHighlighted(false);
       const opts: AddEventListenerOptions = { once: true, passive: true };
       window.addEventListener('pointerdown', stopGlow, opts);
@@ -80,9 +119,12 @@ export function TenseResult({ tenseKey, tense, breadcrumbs, onRestart }: Props) 
     return () => clearTimeout(timer);
   }, [tenseKey]);
 
-  // Selection popover
+  // Track selection changes to show the ephemeral share/lock popover
   useEffect(() => {
     function onSelectionChange() {
+      // Don't interfere while a lock panel is open
+      if (lockedSelRef.current) return;
+
       const container = containerRef.current;
       if (!container) return;
       if (deepHighlighted) {
@@ -113,6 +155,83 @@ export function TenseResult({ tenseKey, tense, breadcrumbs, onRestart }: Props) 
     return () => document.removeEventListener('selectionchange', onSelectionChange);
   }, [deepHighlighted]);
 
+  // Keep highlight rects + panel anchor synced after scroll/resize settles
+  useEffect(() => {
+    if (!lockedSel) {
+      setLockRects([]);
+      setLockAnchor(null);
+      return;
+    }
+
+    const { selData } = lockedSel;
+
+    function updateRects() {
+      if (!containerRef.current) return;
+      const range = restoreSelectionData(containerRef.current, selData);
+      if (!range) return;
+      const rects = Array.from(range.getClientRects()).map((r) => ({
+        top: r.top,
+        left: r.left,
+        width: r.width,
+        height: r.height,
+      }));
+      const b = range.getBoundingClientRect();
+      setLockRects(rects);
+      setLockAnchor({ x: (b.left + b.right) / 2, y: b.bottom });
+    }
+
+    // Debounce: recalculate only once scrolling has stopped
+    let scrollTimer: ReturnType<typeof setTimeout>;
+    function onScroll() {
+      clearTimeout(scrollTimer);
+      scrollTimer = setTimeout(updateRects, 120);
+    }
+
+    updateRects();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('scrollend', updateRects, { passive: true });
+    window.addEventListener('resize', updateRects, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('scrollend', updateRects);
+      window.removeEventListener('resize', updateRects);
+      clearTimeout(scrollTimer);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lockedSel !== null]);
+
+  // Reposition the deep-link message card after scroll settles
+  useEffect(() => {
+    if (!deepMsg) return;
+
+    function updateDeepMsgAnchor() {
+      const selData = deepMsgSelDataRef.current;
+      if (!selData || !containerRef.current) return;
+      const range = restoreSelectionData(containerRef.current, selData);
+      if (!range) return;
+      const rect = range.getBoundingClientRect();
+      setDeepMsgAnchor({ x: (rect.left + rect.right) / 2, y: rect.bottom });
+    }
+
+    let scrollTimer: ReturnType<typeof setTimeout>;
+    function onScroll() {
+      clearTimeout(scrollTimer);
+      scrollTimer = setTimeout(updateDeepMsgAnchor, 120);
+    }
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('scrollend', updateDeepMsgAnchor, { passive: true });
+    window.addEventListener('resize', updateDeepMsgAnchor, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('scrollend', updateDeepMsgAnchor);
+      window.removeEventListener('resize', updateDeepMsgAnchor);
+      clearTimeout(scrollTimer);
+    };
+  }, [deepMsg]);
+
+  // ── Handlers ──────────────────────────────────────────────────────────────
+
   async function handleSelShare() {
     if (!selPop || !containerRef.current) return;
     const range = restoreSelectionData(containerRef.current, selPop.selData);
@@ -122,6 +241,42 @@ export function TenseResult({ tenseKey, tense, breadcrumbs, onRestart }: Props) 
     await copyToClipboard(url);
     setSelCopied(true);
     setTimeout(() => setSelCopied(false), 2000);
+  }
+
+  function handleLock() {
+    if (!containerRef.current) return;
+    const handle = lockSelection(containerRef.current);
+    if (!handle) return;
+
+    const sel = window.getSelection();
+    const range = sel && sel.rangeCount > 0 ? sel.getRangeAt(0) : null;
+    if (range) {
+      const rects = Array.from(range.getClientRects()).map((r) => ({
+        top: r.top,
+        left: r.left,
+        width: r.width,
+        height: r.height,
+      }));
+      const b = range.getBoundingClientRect();
+      setLockRects(rects);
+      setLockAnchor({ x: (b.left + b.right) / 2, y: b.bottom });
+    }
+
+    setLockedSel({ selData: handle.selData, text: handle.text, message: '' });
+    setSelPop(null);
+  }
+
+  async function handleLockCopy() {
+    if (!lockedSel || !containerRef.current) return;
+    const selDataWithMsg: SelectionData = {
+      ...lockedSel.selData,
+      message: lockedSel.message.trim() || undefined,
+    };
+    const url = buildTenseUrl(tenseKey, selDataWithMsg);
+    history.replaceState(null, '', `#tense-${tenseKey}~${url.split('~')[1]}`);
+    await copyToClipboard(url);
+    setLockCopied(true);
+    setTimeout(() => setLockCopied(false), 2000);
   }
 
   async function handleShare(e: React.MouseEvent<HTMLButtonElement>) {
@@ -226,6 +381,7 @@ export function TenseResult({ tenseKey, tense, breadcrumbs, onRestart }: Props) 
         </div>
       </div>
 
+      {/* Ephemeral share / lock popover */}
       {selPop &&
         createPortal(
           <div
@@ -238,13 +394,104 @@ export function TenseResult({ tenseKey, tense, breadcrumbs, onRestart }: Props) 
               zIndex: 9998,
             }}
           >
-            <button
-              className="sel-share-btn"
-              onMouseDown={(e) => e.preventDefault()}
-              onClick={handleSelShare}
-            >
-              {selCopied ? '✓ Ссылка скопирована' : '⛓ Поделиться выделенным текстом'}
-            </button>
+            <div className="sel-share-pop-inner">
+              <button
+                className="sel-share-btn"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={handleSelShare}
+              >
+                {selCopied ? '✓ Ссылка скопирована' : '⛓ Поделиться'}
+              </button>
+              <button
+                className="sel-lock-btn"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={handleLock}
+              >
+                📌 Закрепить
+              </button>
+            </div>
+          </div>,
+          document.body,
+        )}
+
+      {/* Locked selection: highlight overlay + message panel */}
+      {lockedSel &&
+        lockAnchor &&
+        createPortal(
+          <>
+            <div className="sel-highlight-layer">
+              {lockRects.map((r, i) => (
+                <div
+                  key={i}
+                  className="sel-highlight-rect"
+                  style={{ top: r.top, left: r.left, width: r.width, height: r.height }}
+                />
+              ))}
+            </div>
+
+            <div className="sel-lock-panel" style={{ left: lockAnchor.x, top: lockAnchor.y + 10 }}>
+              <div className="sel-lock-panel-header">
+                <div className="sel-lock-panel-title">
+                  📌
+                  <span className="sel-lock-panel-preview">
+                    "
+                    {lockedSel.text.length > 32
+                      ? `${lockedSel.text.slice(0, 32)}…`
+                      : lockedSel.text}
+                    "
+                  </span>
+                </div>
+                <button
+                  className="sel-lock-close"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => setLockedSel(null)}
+                  title="Закрыть"
+                >
+                  ×
+                </button>
+              </div>
+              <div className="sel-lock-panel-body">
+                <textarea
+                  className="sel-lock-textarea"
+                  placeholder="Добавьте комментарий…"
+                  value={lockedSel.message}
+                  onChange={(e) =>
+                    setLockedSel((prev) => (prev ? { ...prev, message: e.target.value } : null))
+                  }
+                />
+                <button
+                  className={`sel-lock-copy-btn${lockCopied ? ' copied' : ''}`}
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={handleLockCopy}
+                >
+                  {lockCopied ? '✓ Ссылка скопирована' : '⛓ Скопировать ссылку'}
+                </button>
+              </div>
+            </div>
+          </>,
+          document.body,
+        )}
+
+      {/* Deep-link message card shown to the recipient */}
+      {deepMsg &&
+        deepMsgAnchor &&
+        createPortal(
+          <div
+            className="sel-deep-msg-card"
+            style={{ left: deepMsgAnchor.x, top: deepMsgAnchor.y + 10 }}
+          >
+            <div className="sel-deep-msg-header">
+              <span className="sel-deep-msg-title">💬 Сообщение</span>
+              <button
+                className="sel-deep-msg-close"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => setDeepMsg(null)}
+                title="Закрыть"
+              >
+                ×
+              </button>
+            </div>
+            <div className="sel-deep-msg-body">{deepMsg}</div>
           </div>,
           document.body,
         )}
