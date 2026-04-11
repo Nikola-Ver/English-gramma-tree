@@ -205,6 +205,13 @@
   transition: border-color 0.15s;
 }
 
+/* Prevent iOS Safari from zooming in when focusing the textarea */
+@media (hover: none) and (pointer: coarse) {
+  .sel-lock-textarea {
+    font-size: 16px;
+  }
+}
+
 .sel-lock-textarea::placeholder {
   color: var(--muted);
   font-style: italic;
