@@ -323,12 +323,14 @@ export function TenseResult({ tenseKey, tense, breadcrumbs, onRestart }: Props) 
   }
 
   function handleNoteStart() {
-    if (!selPop || !containerRef.current) return;
+    if (!selPop) return;
+    const container = containerRef.current;
+    if (!container) return;
     const sel = window.getSelection();
     const range = sel && sel.rangeCount > 0 ? sel.getRangeAt(0) : null;
-    const rects = range ? rectsFromRangeInContainer(range, containerRef.current!) : [];
+    const rects = range ? rectsFromRangeInContainer(range, container) : [];
     const anchor = range
-      ? anchorFromRangeInContainer(range, containerRef.current!)
+      ? anchorFromRangeInContainer(range, container)
       : { x: selPop.x, y: selPop.y };
 
     window.getSelection()?.removeAllRanges();
@@ -478,9 +480,8 @@ export function TenseResult({ tenseKey, tense, breadcrumbs, onRestart }: Props) 
         {lockedSel && (
           <div className="sel-highlight-layer--inline">
             {lockRects.map((r, i) => (
-              // biome-ignore lint/suspicious/noArrayIndexKey: geometry rects have no natural key
               <div
-                key={i}
+                key={`${r.top}-${r.left}-${r.width}-${r.height}`}
                 className={`sel-highlight-rect ${hlPosClass(i, lockRects.length)}`}
                 style={{ top: r.top, left: r.left, width: r.width, height: r.height }}
               />
@@ -495,9 +496,8 @@ export function TenseResult({ tenseKey, tense, breadcrumbs, onRestart }: Props) 
               const isHovered = hoveredNoteId === note.id;
               const isActive = activeNoteId === note.id;
               return rects.map((r, i) => (
-                // biome-ignore lint/suspicious/noArrayIndexKey: geometry rects have no natural key
                 <div
-                  key={`${note.id}-${i}`}
+                  key={`${note.id}-${r.top}-${r.left}-${r.width}-${r.height}`}
                   className={`sel-highlight-rect--note ${hlPosClass(i, rects.length)}${isActive ? ' hl-active' : isHovered ? ' hl-hovered' : ''}`}
                   style={{ top: r.top, left: r.left, width: r.width, height: r.height }}
                   onMouseEnter={() => setHoveredNoteId(note.id)}
@@ -512,9 +512,8 @@ export function TenseResult({ tenseKey, tense, breadcrumbs, onRestart }: Props) 
         {noteDraft && (
           <div className="sel-highlight-layer--inline">
             {noteDraft.rects.map((r, i) => (
-              // biome-ignore lint/suspicious/noArrayIndexKey: geometry rects have no natural key
               <div
-                key={i}
+                key={`${r.top}-${r.left}-${r.width}-${r.height}`}
                 className={`sel-highlight-rect--note ${hlPosClass(i, noteDraft.rects.length)}`}
                 style={{ top: r.top, left: r.left, width: r.width, height: r.height }}
               />
@@ -525,9 +524,8 @@ export function TenseResult({ tenseKey, tense, breadcrumbs, onRestart }: Props) 
         {deepMsg && (
           <div className="sel-highlight-layer--inline">
             {deepMsgRects.map((r, i) => (
-              // biome-ignore lint/suspicious/noArrayIndexKey: geometry rects have no natural key
               <div
-                key={i}
+                key={`${r.top}-${r.left}-${r.width}-${r.height}`}
                 className={`sel-highlight-rect sel-highlight-rect--deep ${hlPosClass(i, deepMsgRects.length)}`}
                 style={{ top: r.top, left: r.left, width: r.width, height: r.height }}
               />

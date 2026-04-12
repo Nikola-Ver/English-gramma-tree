@@ -127,8 +127,9 @@ export function RuleExpansion({ rule, isOpen }: Props) {
     };
 
     const timer = setTimeout(() => {
-      if (!ref.current) return;
-      const range = restoreSelectionData(ref.current, data);
+      const container = ref.current;
+      if (!container) return;
+      const range = restoreSelectionData(container, data);
       if (!range) return;
 
       const rect = range.getBoundingClientRect();
@@ -142,8 +143,8 @@ export function RuleExpansion({ rule, isOpen }: Props) {
       if (data.message) {
         deepMsgSelDataRef.current = data;
         setDeepMsg(data.message);
-        setDeepMsgAnchor(anchorFromRangeInContainer(range, ref.current!));
-        setDeepMsgRects(rectsFromRangeInContainer(range, ref.current!));
+        setDeepMsgAnchor(anchorFromRangeInContainer(range, container));
+        setDeepMsgRects(rectsFromRangeInContainer(range, container));
       } else {
         setDeepHighlighted(true);
         applySelection(range);
@@ -471,346 +472,335 @@ export function RuleExpansion({ rule, isOpen }: Props) {
   const activeNote = notes.find((n) => n.id === activeNoteId) ?? null;
 
   return (
-    <>
-      <div ref={ref} className={`rule-exp${deepHighlighted ? ' deep-highlighted' : ''}`}>
-        {everOpened && (
-          <>
-            <div dangerouslySetInnerHTML={{ __html: rule.exp }} />
-            {rule.ex && rule.ex.length > 0 && (
-              <ul className="ex-list">
-                {rule.ex.map(([en, ru]) => (
-                  <li key={en}>
-                    {en}
-                    {ru && <span className="tr">{ru}</span>}
-                  </li>
+    <div ref={ref} className={`rule-exp${deepHighlighted ? ' deep-highlighted' : ''}`}>
+      {everOpened && (
+        <>
+          <div dangerouslySetInnerHTML={{ __html: rule.exp }} />
+          {rule.ex && rule.ex.length > 0 && (
+            <ul className="ex-list">
+              {rule.ex.map(([en, ru]) => (
+                <li key={en}>
+                  {en}
+                  {ru && <span className="tr">{ru}</span>}
+                </li>
+              ))}
+            </ul>
+          )}
+          {rule.exc && (
+            <div className="exc-block">
+              <strong>⚠️ Исключения:</strong> <span dangerouslySetInnerHTML={{ __html: rule.exc }} />
+            </div>
+          )}
+          {rule.tip && (
+            <div className="tip-block">
+              <strong>💡 Совет:</strong> <span dangerouslySetInnerHTML={{ __html: rule.tip }} />
+            </div>
+          )}
+          {rule.markers && rule.markers.tags.length > 0 && (
+            <div className="markers-block">
+              <strong>⏱ Маркеры времени</strong>
+              <div className="markers-wrap">
+                {rule.markers.tags.map((t) => (
+                  <span key={t} className="marker-tag">
+                    {t}
+                  </span>
+                ))}
+              </div>
+              {rule.markers.note && <div className="markers-note">{rule.markers.note}</div>}
+            </div>
+          )}
+          {rule.mistakes && rule.mistakes.length > 0 && (
+            <div className="mistakes-block">
+              <strong>🚫 Типичные ошибки:</strong>
+              <ul>
+                {rule.mistakes.map((m) => (
+                  <li key={m} dangerouslySetInnerHTML={{ __html: m }} />
                 ))}
               </ul>
-            )}
-            {rule.exc && (
-              <div className="exc-block">
-                <strong>⚠️ Исключения:</strong>{' '}
-                <span dangerouslySetInnerHTML={{ __html: rule.exc }} />
-              </div>
-            )}
-            {rule.tip && (
-              <div className="tip-block">
-                <strong>💡 Совет:</strong> <span dangerouslySetInnerHTML={{ __html: rule.tip }} />
-              </div>
-            )}
-            {rule.markers && rule.markers.tags.length > 0 && (
-              <div className="markers-block">
-                <strong>⏱ Маркеры времени</strong>
-                <div className="markers-wrap">
-                  {rule.markers.tags.map((t) => (
-                    <span key={t} className="marker-tag">
-                      {t}
-                    </span>
-                  ))}
-                </div>
-                {rule.markers.note && <div className="markers-note">{rule.markers.note}</div>}
-              </div>
-            )}
-            {rule.mistakes && rule.mistakes.length > 0 && (
-              <div className="mistakes-block">
-                <strong>🚫 Типичные ошибки:</strong>
-                <ul>
-                  {rule.mistakes.map((m) => (
-                    <li key={m} dangerouslySetInnerHTML={{ __html: m }} />
-                  ))}
-                </ul>
-              </div>
-            )}
-            {rule.links && rule.links.length > 0 && (
-              <div className="link-row">
-                {rule.links.map((l) => {
-                  const icon = l.type === 'yt' ? '▶' : l.type === 'ru' ? 'RU' : 'EN';
-                  return (
-                    <a
-                      key={l.url}
-                      className={`lnk ${l.type}`}
-                      href={l.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <span className="lnk-dot" />
-                      {icon} {l.label}
-                    </a>
-                  );
-                })}
-              </div>
-            )}
-          </>
-        )}
-
-        {/* Inline highlight layers — scroll with the container */}
-
-        {lockedSel && !isAnimating && (
-          <div className="sel-highlight-layer--inline">
-            {lockRects.map((r, i) => (
-              // biome-ignore lint/suspicious/noArrayIndexKey: geometry rects have no natural key
-              <div
-                key={i}
-                className={`sel-highlight-rect ${hlPosClass(i, lockRects.length)}`}
-                style={{ top: r.top, left: r.left, width: r.width, height: r.height }}
-              />
-            ))}
-          </div>
-        )}
-
-        {notes.length > 0 && !isAnimating && (
-          <div className="sel-highlight-layer--inline">
-            {notes.map((note) => {
-              const rects = noteRects.get(note.id) ?? [];
-              const isHovered = hoveredNoteId === note.id;
-              const isActive = activeNoteId === note.id;
-              return rects.map((r, i) => (
-                // biome-ignore lint/suspicious/noArrayIndexKey: geometry rects have no natural key
-                <div
-                  key={`${note.id}-${i}`}
-                  className={`sel-highlight-rect--note ${hlPosClass(i, rects.length)}${isActive ? ' hl-active' : isHovered ? ' hl-hovered' : ''}`}
-                  style={{ top: r.top, left: r.left, width: r.width, height: r.height }}
-                  onMouseEnter={() => setHoveredNoteId(note.id)}
-                  onMouseLeave={() => setHoveredNoteId(null)}
-                  onClick={() => handleNoteHighlightClick(note.id)}
-                />
-              ));
-            })}
-          </div>
-        )}
-
-        {noteDraft && !isAnimating && (
-          <div className="sel-highlight-layer--inline">
-            {noteDraft.rects.map((r, i) => (
-              // biome-ignore lint/suspicious/noArrayIndexKey: geometry rects have no natural key
-              <div
-                key={i}
-                className={`sel-highlight-rect--note ${hlPosClass(i, noteDraft.rects.length)}`}
-                style={{ top: r.top, left: r.left, width: r.width, height: r.height }}
-              />
-            ))}
-          </div>
-        )}
-
-        {deepMsg && !isAnimating && (
-          <div className="sel-highlight-layer--inline">
-            {deepMsgRects.map((r, i) => (
-              // biome-ignore lint/suspicious/noArrayIndexKey: geometry rects have no natural key
-              <div
-                key={i}
-                className={`sel-highlight-rect sel-highlight-rect--deep ${hlPosClass(i, deepMsgRects.length)}`}
-                style={{ top: r.top, left: r.left, width: r.width, height: r.height }}
-              />
-            ))}
-          </div>
-        )}
-
-        {/* Inline panels — scroll with the container */}
-
-        {selPop && !isAnimating && (
-          <div
-            className="sel-share-pop"
-            style={{
-              position: 'absolute',
-              left: selPop.x,
-              top: selPop.y + 8,
-              transform: 'translateX(-50%)',
-              zIndex: 9998,
-            }}
-          >
-            <div className="sel-share-pop-inner">
-              <button
-                className={`sel-pop-btn sel-pop-btn--share${selCopied ? ' copied' : ''}`}
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={handleSelShare}
-                title="Поделиться"
-              >
-                <IconShare />
-              </button>
-              <button
-                className="sel-pop-btn sel-pop-btn--pin"
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={handleLock}
-                title="Закрепить"
-              >
-                <IconPin />
-              </button>
-              <button
-                className="sel-pop-btn sel-pop-btn--note"
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={handleNoteStart}
-                title="Пометка"
-              >
-                <IconNote />
-              </button>
             </div>
-          </div>
-        )}
+          )}
+          {rule.links && rule.links.length > 0 && (
+            <div className="link-row">
+              {rule.links.map((l) => {
+                const icon = l.type === 'yt' ? '▶' : l.type === 'ru' ? 'RU' : 'EN';
+                return (
+                  <a
+                    key={l.url}
+                    className={`lnk ${l.type}`}
+                    href={l.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <span className="lnk-dot" />
+                    {icon} {l.label}
+                  </a>
+                );
+              })}
+            </div>
+          )}
+        </>
+      )}
 
-        {lockedSel && !isAnimating && lockAnchor && (
-          <div className="sel-lock-panel" style={{ left: lockAnchor.x, top: lockAnchor.y + 10 }}>
-            <div className="sel-lock-panel-header">
-              <div className="sel-lock-panel-title">
-                <IconPin size={11} />
-                <span className="sel-lock-panel-preview">
-                  "{lockedSel.text.length > 32 ? `${lockedSel.text.slice(0, 32)}…` : lockedSel.text}
-                  "
-                </span>
-              </div>
+      {/* Inline highlight layers — scroll with the container */}
+
+      {lockedSel && !isAnimating && (
+        <div className="sel-highlight-layer--inline">
+          {lockRects.map((r, i) => (
+            <div
+              key={`${r.top}-${r.left}-${r.width}-${r.height}`}
+              className={`sel-highlight-rect ${hlPosClass(i, lockRects.length)}`}
+              style={{ top: r.top, left: r.left, width: r.width, height: r.height }}
+            />
+          ))}
+        </div>
+      )}
+
+      {notes.length > 0 && !isAnimating && (
+        <div className="sel-highlight-layer--inline">
+          {notes.map((note) => {
+            const rects = noteRects.get(note.id) ?? [];
+            const isHovered = hoveredNoteId === note.id;
+            const isActive = activeNoteId === note.id;
+            return rects.map((r, i) => (
+              <div
+                key={`${note.id}-${r.top}-${r.left}-${r.width}-${r.height}`}
+                className={`sel-highlight-rect--note ${hlPosClass(i, rects.length)}${isActive ? ' hl-active' : isHovered ? ' hl-hovered' : ''}`}
+                style={{ top: r.top, left: r.left, width: r.width, height: r.height }}
+                onMouseEnter={() => setHoveredNoteId(note.id)}
+                onMouseLeave={() => setHoveredNoteId(null)}
+                onClick={() => handleNoteHighlightClick(note.id)}
+              />
+            ));
+          })}
+        </div>
+      )}
+
+      {noteDraft && !isAnimating && (
+        <div className="sel-highlight-layer--inline">
+          {noteDraft.rects.map((r, i) => (
+            <div
+              key={`${r.top}-${r.left}-${r.width}-${r.height}`}
+              className={`sel-highlight-rect--note ${hlPosClass(i, noteDraft.rects.length)}`}
+              style={{ top: r.top, left: r.left, width: r.width, height: r.height }}
+            />
+          ))}
+        </div>
+      )}
+
+      {deepMsg && !isAnimating && (
+        <div className="sel-highlight-layer--inline">
+          {deepMsgRects.map((r, i) => (
+            <div
+              key={`${r.top}-${r.left}-${r.width}-${r.height}`}
+              className={`sel-highlight-rect sel-highlight-rect--deep ${hlPosClass(i, deepMsgRects.length)}`}
+              style={{ top: r.top, left: r.left, width: r.width, height: r.height }}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Inline panels — scroll with the container */}
+
+      {selPop && !isAnimating && (
+        <div
+          className="sel-share-pop"
+          style={{
+            position: 'absolute',
+            left: selPop.x,
+            top: selPop.y + 8,
+            transform: 'translateX(-50%)',
+            zIndex: 9998,
+          }}
+        >
+          <div className="sel-share-pop-inner">
+            <button
+              className={`sel-pop-btn sel-pop-btn--share${selCopied ? ' copied' : ''}`}
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={handleSelShare}
+              title="Поделиться"
+            >
+              <IconShare />
+            </button>
+            <button
+              className="sel-pop-btn sel-pop-btn--pin"
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={handleLock}
+              title="Закрепить"
+            >
+              <IconPin />
+            </button>
+            <button
+              className="sel-pop-btn sel-pop-btn--note"
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={handleNoteStart}
+              title="Пометка"
+            >
+              <IconNote />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {lockedSel && !isAnimating && lockAnchor && (
+        <div className="sel-lock-panel" style={{ left: lockAnchor.x, top: lockAnchor.y + 10 }}>
+          <div className="sel-lock-panel-header">
+            <div className="sel-lock-panel-title">
+              <IconPin size={11} />
+              <span className="sel-lock-panel-preview">
+                "{lockedSel.text.length > 32 ? `${lockedSel.text.slice(0, 32)}…` : lockedSel.text}"
+              </span>
+            </div>
+            <button
+              className="sel-lock-close"
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => {
+                setLockedSel(null);
+                if (location.hash.includes('~')) {
+                  history.replaceState(null, '', '/');
+                }
+              }}
+              title="Закрыть"
+            >
+              ×
+            </button>
+          </div>
+          <div className="sel-lock-panel-body">
+            <textarea
+              className="sel-lock-textarea"
+              placeholder="Добавьте комментарий…"
+              value={lockedSel.message}
+              onChange={(e) =>
+                setLockedSel((prev) => (prev ? { ...prev, message: e.target.value } : null))
+              }
+            />
+            <button
+              className={`sel-lock-copy-btn${lockCopied ? ' copied' : ''}`}
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={handleLockCopy}
+            >
+              {lockCopied ? '✓ Ссылка скопирована' : '⛓ Скопировать ссылку'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {noteDraft && !isAnimating && (
+        <div
+          className="sel-note-panel"
+          style={{ left: noteDraft.anchor.x, top: noteDraft.anchor.y + 10 }}
+        >
+          <div className="sel-note-panel-header">
+            <div className="sel-note-panel-title">
+              <IconNote size={11} />
+              <span className="sel-note-panel-preview">
+                "{noteDraft.text.length > 28 ? `${noteDraft.text.slice(0, 28)}…` : noteDraft.text}"
+              </span>
+            </div>
+            <button
+              className="sel-note-close"
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => setNoteDraft(null)}
+              title="Отмена"
+            >
+              ×
+            </button>
+          </div>
+          <div className="sel-note-panel-body">
+            <textarea
+              className="sel-note-textarea"
+              placeholder="Ваша пометка…"
+              value={noteDraft.message}
+              onChange={(e) =>
+                setNoteDraft((prev) => (prev ? { ...prev, message: e.target.value } : null))
+              }
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) handleNoteSave();
+              }}
+            />
+            <button
+              className="sel-note-save-btn"
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={handleNoteSave}
+            >
+              Сохранить
+            </button>
+          </div>
+        </div>
+      )}
+
+      {activeNote && !isAnimating && activeNoteAnchor && (
+        <div
+          className="sel-note-card"
+          style={{ left: activeNoteAnchor.x, top: activeNoteAnchor.y + 10 }}
+        >
+          <div className="sel-note-card-header">
+            <div className="sel-note-card-title">
+              <IconNote size={11} />
+              <span className="sel-note-card-excerpt">
+                "
+                {activeNote.text.length > 26 ? `${activeNote.text.slice(0, 26)}…` : activeNote.text}
+                "
+              </span>
+            </div>
+            <div className="sel-note-card-actions">
               <button
-                className="sel-lock-close"
+                className="sel-note-card-delete"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => handleNoteDelete(activeNote.id)}
+                title="Удалить пометку"
+              >
+                <IconTrash />
+              </button>
+              <button
+                className="sel-note-card-close"
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => {
-                  setLockedSel(null);
-                  if (location.hash.includes('~')) {
-                    history.replaceState(null, '', '/');
-                  }
+                  setActiveNoteId(null);
+                  setActiveNoteAnchor(null);
                 }}
                 title="Закрыть"
               >
                 ×
               </button>
             </div>
-            <div className="sel-lock-panel-body">
-              <textarea
-                className="sel-lock-textarea"
-                placeholder="Добавьте комментарий…"
-                value={lockedSel.message}
-                onChange={(e) =>
-                  setLockedSel((prev) => (prev ? { ...prev, message: e.target.value } : null))
+          </div>
+          <div className="sel-note-card-body">
+            {activeNote.message ? (
+              activeNote.message
+            ) : (
+              <span className="sel-note-card-empty">Пометка без текста</span>
+            )}
+          </div>
+        </div>
+      )}
+
+      {deepMsg && !isAnimating && deepMsgAnchor && (
+        <div
+          className="sel-deep-msg-card"
+          style={{ left: deepMsgAnchor.x, top: deepMsgAnchor.y + 10 }}
+        >
+          <div className="sel-deep-msg-header">
+            <span className="sel-deep-msg-title">💬 Сообщение</span>
+            <button
+              className="sel-deep-msg-close"
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => {
+                setDeepMsg(null);
+                setDeepMsgRects([]);
+                deepMsgSelDataRef.current = null;
+                if (location.hash.includes('~')) {
+                  history.replaceState(null, '', '/');
                 }
-              />
-              <button
-                className={`sel-lock-copy-btn${lockCopied ? ' copied' : ''}`}
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={handleLockCopy}
-              >
-                {lockCopied ? '✓ Ссылка скопирована' : '⛓ Скопировать ссылку'}
-              </button>
-            </div>
+              }}
+              title="Закрыть"
+            >
+              ×
+            </button>
           </div>
-        )}
-
-        {noteDraft && !isAnimating && (
-          <div
-            className="sel-note-panel"
-            style={{ left: noteDraft.anchor.x, top: noteDraft.anchor.y + 10 }}
-          >
-            <div className="sel-note-panel-header">
-              <div className="sel-note-panel-title">
-                <IconNote size={11} />
-                <span className="sel-note-panel-preview">
-                  "{noteDraft.text.length > 28 ? `${noteDraft.text.slice(0, 28)}…` : noteDraft.text}
-                  "
-                </span>
-              </div>
-              <button
-                className="sel-note-close"
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => setNoteDraft(null)}
-                title="Отмена"
-              >
-                ×
-              </button>
-            </div>
-            <div className="sel-note-panel-body">
-              <textarea
-                className="sel-note-textarea"
-                placeholder="Ваша пометка…"
-                value={noteDraft.message}
-                onChange={(e) =>
-                  setNoteDraft((prev) => (prev ? { ...prev, message: e.target.value } : null))
-                }
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) handleNoteSave();
-                }}
-              />
-              <button
-                className="sel-note-save-btn"
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={handleNoteSave}
-              >
-                Сохранить
-              </button>
-            </div>
-          </div>
-        )}
-
-        {activeNote && !isAnimating && activeNoteAnchor && (
-          <div
-            className="sel-note-card"
-            style={{ left: activeNoteAnchor.x, top: activeNoteAnchor.y + 10 }}
-          >
-            <div className="sel-note-card-header">
-              <div className="sel-note-card-title">
-                <IconNote size={11} />
-                <span className="sel-note-card-excerpt">
-                  "
-                  {activeNote.text.length > 26
-                    ? `${activeNote.text.slice(0, 26)}…`
-                    : activeNote.text}
-                  "
-                </span>
-              </div>
-              <div className="sel-note-card-actions">
-                <button
-                  className="sel-note-card-delete"
-                  onMouseDown={(e) => e.preventDefault()}
-                  onClick={() => handleNoteDelete(activeNote.id)}
-                  title="Удалить пометку"
-                >
-                  <IconTrash />
-                </button>
-                <button
-                  className="sel-note-card-close"
-                  onMouseDown={(e) => e.preventDefault()}
-                  onClick={() => {
-                    setActiveNoteId(null);
-                    setActiveNoteAnchor(null);
-                  }}
-                  title="Закрыть"
-                >
-                  ×
-                </button>
-              </div>
-            </div>
-            <div className="sel-note-card-body">
-              {activeNote.message ? (
-                activeNote.message
-              ) : (
-                <span className="sel-note-card-empty">Пометка без текста</span>
-              )}
-            </div>
-          </div>
-        )}
-
-        {deepMsg && !isAnimating && deepMsgAnchor && (
-          <div
-            className="sel-deep-msg-card"
-            style={{ left: deepMsgAnchor.x, top: deepMsgAnchor.y + 10 }}
-          >
-            <div className="sel-deep-msg-header">
-              <span className="sel-deep-msg-title">💬 Сообщение</span>
-              <button
-                className="sel-deep-msg-close"
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => {
-                  setDeepMsg(null);
-                  setDeepMsgRects([]);
-                  deepMsgSelDataRef.current = null;
-                  if (location.hash.includes('~')) {
-                    history.replaceState(null, '', '/');
-                  }
-                }}
-                title="Закрыть"
-              >
-                ×
-              </button>
-            </div>
-            <div className="sel-deep-msg-body">{deepMsg}</div>
-          </div>
-        )}
-      </div>
-    </>
+          <div className="sel-deep-msg-body">{deepMsg}</div>
+        </div>
+      )}
+    </div>
   );
 }

@@ -65,7 +65,6 @@ const LS_NOTES_TOMBSTONES = 'eng-notes-tombstones-v1';
 const LS_THEME = 'theme-override';
 const SYNC_DEBOUNCE_MS = 800;
 
-// biome-ignore lint/suspicious/noExplicitAny: safe generic parse
 function safeParse<T>(raw: string | null, fallback: T): T {
   try {
     return raw !== null ? (JSON.parse(raw) as T) : fallback;

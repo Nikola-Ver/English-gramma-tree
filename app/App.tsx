@@ -44,7 +44,7 @@ function AppContent() {
   // Redirect to main whenever auth state settles (sign-in or sign-out)
   useEffect(() => {
     if (!authLoading) setView('main');
-  }, [user, authLoading]);
+  }, [authLoading]);
 
   useEffect(() => {
     const parsedRule = parseRuleHash();
