@@ -26,11 +26,14 @@ export interface FirestoreUserDoc {
   contentVersion: number;
   progress: {
     grammar: Record<string, true>;
+    grammarCheckedAt: Record<string, Timestamp>;
     grammarUpdatedAt: Timestamp;
     grammarTombstones: Record<string, Timestamp>;
     murphy: Record<string, true>;
+    murphyCheckedAt: Record<string, Timestamp>;
     murphyUpdatedAt: Timestamp;
     murphyTombstones: Record<string, Timestamp>;
+    notesTombstones: Record<string, Timestamp>;
   };
   settings: {
     theme: 'dark' | 'light' | null;
@@ -96,10 +99,13 @@ export async function getNotesCollection(uid: string): Promise<Map<string, Store
 export async function pushAllData(
   uid: string,
   grammar: DoneMap,
-  murphy: DoneMap,
+  grammarCheckedAt: Record<string, number>,
   grammarTombstones: Record<string, number>,
+  murphy: DoneMap,
+  murphyCheckedAt: Record<string, number>,
   murphyTombstones: Record<string, number>,
   notes: StoredNote[],
+  notesTombstones: Record<string, number>,
   theme: 'dark' | 'light' | null,
   provider: 'google' | 'password',
   displayName: string,
@@ -135,11 +141,14 @@ export async function pushAllData(
       contentVersion: CONTENT_VERSION,
       progress: {
         grammar: grammarRecord,
+        grammarCheckedAt: toTimestampMap(grammarCheckedAt),
         grammarUpdatedAt: now,
         grammarTombstones: toTimestampMap(grammarTombstones),
         murphy: murphyRecord,
+        murphyCheckedAt: toTimestampMap(murphyCheckedAt),
         murphyUpdatedAt: now,
         murphyTombstones: toTimestampMap(murphyTombstones),
+        notesTombstones: toTimestampMap(notesTombstones),
       },
       settings: { theme: theme ?? null, updatedAt: now },
     },

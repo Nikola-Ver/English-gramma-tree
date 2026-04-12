@@ -1,8 +1,6 @@
 import { useState } from 'react';
 import type { SyncStatus } from '../../context/AuthSyncContext';
 import { useAuthSync } from '../../context/AuthSyncContext';
-import type { MergePref } from '../../services/mergePref';
-import { loadMergePref, saveMergePref } from '../../services/mergePref';
 import './AccountPage.css';
 
 interface Props {
@@ -39,7 +37,6 @@ export function AccountPage({ onBack }: Props) {
   const [deleting, setDeleting] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [deleteError, setDeleteError] = useState('');
-  const [mergePref, setMergePref] = useState<MergePref>(() => loadMergePref());
 
   if (!user) return null;
 
@@ -62,6 +59,7 @@ export function AccountPage({ onBack }: Props) {
     setDeleteError('');
     try {
       await deleteAccount();
+      onBack();
     } catch (e) {
       const code = (e as { code?: string }).code ?? '';
       if (code === 'auth/requires-recent-login') {
@@ -122,36 +120,6 @@ export function AccountPage({ onBack }: Props) {
         <button type="button" className="account-btn account-btn--secondary" onClick={signOut}>
           Выйти
         </button>
-
-        <div className="account-divider" />
-
-        {/* Merge preference */}
-        <div className="account-merge-pref">
-          <p className="account-merge-pref-label">При конфликте данных:</p>
-          <div className="account-merge-pref-options">
-            {(
-              [
-                ['ask', 'Спрашивать каждый раз'],
-                ['merge', 'Всегда объединять'],
-                ['replace', 'Всегда заменять облако'],
-              ] as [MergePref, string][]
-            ).map(([value, label]) => (
-              <label key={value} className="account-merge-pref-option">
-                <input
-                  type="radio"
-                  name="merge-pref"
-                  value={value}
-                  checked={mergePref === value}
-                  onChange={() => {
-                    setMergePref(value);
-                    saveMergePref(value);
-                  }}
-                />
-                {label}
-              </label>
-            ))}
-          </div>
-        </div>
 
         <div className="account-divider" />
 

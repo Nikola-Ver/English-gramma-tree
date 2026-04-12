@@ -24,16 +24,20 @@ function tombstoneKey(sk: string): string {
   return `${sk}_tombstones`;
 }
 
-function loadTombstones(tk: string): TombstoneMap {
+function checkedAtKey(sk: string): string {
+  return `${sk}_checkedAt`;
+}
+
+function loadTimestampMap(key: string): TombstoneMap {
   try {
-    return JSON.parse(localStorage.getItem(tk) || '{}');
+    return JSON.parse(localStorage.getItem(key) || '{}');
   } catch {
     return {};
   }
 }
 
-function saveTombstones(t: TombstoneMap, tk: string): void {
-  localStorage.setItem(tk, JSON.stringify(t));
+function saveTimestampMap(m: TombstoneMap, key: string): void {
+  localStorage.setItem(key, JSON.stringify(m));
 }
 
 export function countLevel(lvl: Level, done: DoneMap) {
@@ -62,6 +66,7 @@ export function countAll(done: DoneMap, data: Level[] = DATA) {
 export function useProgress(storageKey = DEFAULT_SK) {
   const [done, setDone] = useState<DoneMap>(() => loadDone(storageKey));
   const tk = tombstoneKey(storageKey);
+  const cak = checkedAtKey(storageKey);
 
   useEffect(() => {
     saveDone(done, storageKey);
@@ -75,19 +80,27 @@ export function useProgress(storageKey = DEFAULT_SK) {
   }, [storageKey]);
 
   function toggleRule(id: string) {
+    const now = Date.now();
     setDone((prev) => {
       const isCurrentlyDone = !!prev[id];
 
       if (isCurrentlyDone) {
-        // Unmarking: record tombstone so syncs never re-import this rule
-        const tombstones = loadTombstones(tk);
-        saveTombstones({ ...tombstones, [id]: Date.now() }, tk);
+        // Unmarking: record tombstone timestamp, remove checkedAt
+        const tombstones = loadTimestampMap(tk);
+        saveTimestampMap({ ...tombstones, [id]: now }, tk);
+        const checkedAt = loadTimestampMap(cak);
+        if (id in checkedAt) {
+          const { [id]: _removed, ...rest } = checkedAt;
+          saveTimestampMap(rest, cak);
+        }
       } else {
-        // Marking: remove tombstone if one existed
-        const tombstones = loadTombstones(tk);
+        // Marking: record checkedAt timestamp, remove tombstone
+        const checkedAt = loadTimestampMap(cak);
+        saveTimestampMap({ ...checkedAt, [id]: now }, cak);
+        const tombstones = loadTimestampMap(tk);
         if (id in tombstones) {
           const { [id]: _removed, ...rest } = tombstones;
-          saveTombstones(rest, tk);
+          saveTimestampMap(rest, tk);
         }
       }
 
@@ -99,7 +112,8 @@ export function useProgress(storageKey = DEFAULT_SK) {
   }
 
   function resetAll() {
-    saveTombstones({}, tk);
+    saveTimestampMap({}, tk);
+    saveTimestampMap({}, cak);
     setDone({});
     notifyProgressChanged();
   }

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import './RuleExpansion.css';
 import '../selectionLock.css';
 import type { Rule } from '../../data/grammar';
+import { useNotes } from '../../hooks/useNotes';
 import { IconNote, IconPin, IconShare, IconTrash } from '../../icons';
 import { copyToClipboard } from '../../utils/clipboard';
 import type { SelectionData } from '../../utils/deepLink';
@@ -12,12 +13,7 @@ import {
   hlPosClass,
   rectsFromRangeInContainer,
 } from '../../utils/highlightRects';
-import {
-  deleteNote,
-  getNotesForContext,
-  type StoredNote,
-  saveNote,
-} from '../../utils/notesStorage';
+import { deleteNote, type StoredNote, saveNote } from '../../utils/notesStorage';
 import {
   applySelection,
   getSelectionData,
@@ -77,8 +73,8 @@ export function RuleExpansion({ rule, isOpen }: Props) {
   const deepMsgRef = useRef(deepMsg);
   deepMsgRef.current = deepMsg;
 
-  // Notes state
-  const [notes, setNotes] = useState<StoredNote[]>([]);
+  // Notes state — reacts to local actions and real-time Firestore sync
+  const [notes, setNotes] = useNotes(rule.id, 'rule');
   const notesRef = useRef(notes);
   notesRef.current = notes;
   const [noteRects, setNoteRects] = useState<Map<string, HighlightRect[]>>(new Map());
@@ -96,12 +92,6 @@ export function RuleExpansion({ rule, isOpen }: Props) {
 
   // Stable ref to the latest updateAll so the animation effect can call it
   const updateAllRef = useRef<(() => void) | null>(null);
-
-  // Load notes for this rule once the content is first opened
-  useEffect(() => {
-    if (!everOpened) return;
-    setNotes(getNotesForContext(rule.id, 'rule'));
-  }, [everOpened, rule.id]);
 
   // Restore a path-based selection from the URL hash once the content renders
   useEffect(() => {

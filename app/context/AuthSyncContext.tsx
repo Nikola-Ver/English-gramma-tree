@@ -32,7 +32,6 @@ import {
   subscribeToNotes,
   subscribeToUserDoc,
 } from '../services/firestoreService';
-import { loadMergePref, saveMergePref } from '../services/mergePref';
 import {
   registerSyncCallbacks,
   SYNC_APPLIED_EVENT,
@@ -47,8 +46,6 @@ export interface AuthSyncContextValue {
   authLoading: boolean;
   syncStatus: SyncStatus;
   lastSyncAt: Date | null;
-  mergeDialogVisible: boolean;
-  onMergeChoice: (choice: 'merge' | 'replace', remember: boolean) => void;
   signInWithGoogle: () => Promise<void>;
   signInWithEmail: (email: string, password: string) => Promise<void>;
   signUpWithEmail: (email: string, password: string) => Promise<void>;
@@ -59,9 +56,12 @@ export interface AuthSyncContextValue {
 
 const LS_GRAMMAR = 'eng_v4';
 const LS_MURPHY = 'murphy_v1';
+const LS_GRAMMAR_CHECKED_AT = 'eng_v4_checkedAt';
+const LS_MURPHY_CHECKED_AT = 'murphy_v1_checkedAt';
 const LS_GRAMMAR_TOMBSTONES = 'eng_v4_tombstones';
 const LS_MURPHY_TOMBSTONES = 'murphy_v1_tombstones';
 const LS_NOTES = 'eng-notes-v1';
+const LS_NOTES_TOMBSTONES = 'eng-notes-tombstones-v1';
 const LS_THEME = 'theme-override';
 const SYNC_DEBOUNCE_MS = 800;
 
@@ -77,9 +77,17 @@ function safeParse<T>(raw: string | null, fallback: T): T {
 function readAllLocal() {
   return {
     grammar: safeParse<DoneMap>(localStorage.getItem(LS_GRAMMAR), {}),
-    murphy: safeParse<DoneMap>(localStorage.getItem(LS_MURPHY), {}),
+    grammarCheckedAt: safeParse<Record<string, number>>(
+      localStorage.getItem(LS_GRAMMAR_CHECKED_AT),
+      {},
+    ),
     grammarTombstones: safeParse<Record<string, number>>(
       localStorage.getItem(LS_GRAMMAR_TOMBSTONES),
+      {},
+    ),
+    murphy: safeParse<DoneMap>(localStorage.getItem(LS_MURPHY), {}),
+    murphyCheckedAt: safeParse<Record<string, number>>(
+      localStorage.getItem(LS_MURPHY_CHECKED_AT),
       {},
     ),
     murphyTombstones: safeParse<Record<string, number>>(
@@ -87,6 +95,10 @@ function readAllLocal() {
       {},
     ),
     notes: safeParse<StoredNote[]>(localStorage.getItem(LS_NOTES), []),
+    notesTombstones: safeParse<Record<string, number>>(
+      localStorage.getItem(LS_NOTES_TOMBSTONES),
+      {},
+    ),
     theme: (() => {
       const v = localStorage.getItem(LS_THEME);
       return v === 'dark' || v === 'light' ? v : null;
@@ -100,17 +112,117 @@ function hasData(grammar: DoneMap, murphy: DoneMap, notes: StoredNote[]): boolea
   );
 }
 
-// tombstones: rules explicitly unchecked locally — they veto re-import from remote
+// Convert a Firestore Timestamp map to a milliseconds map.
+function toMillisMap(m: Record<string, { toMillis(): number }> = {}): Record<string, number> {
+  const out: Record<string, number> = {};
+  for (const [k, ts] of Object.entries(m)) out[k] = ts.toMillis();
+  return out;
+}
+
+// Last-write-wins merge for rule checkboxes.
+//
+// Each rule tracks two timestamps:
+//   checkedAt  — when it was last marked done
+//   tombstone  — when it was last unmarked
+//
+// The side with the strictly newer timestamp wins. When both sides have no
+// timestamp info (old data, both = 0), fall back to a union (OR) so that
+// pre-timestamp checked rules are never silently dropped.
+//
+// IMPORTANT: Firestore's `{ merge: true }` recursively merges nested maps, so
+// pushing `grammar: {}` does NOT remove a key from Firestore's grammar map —
+// the key stays in the map. The authoritative signal for an uncheck is the
+// tombstone timestamp, NOT the absence of a key from the grammar map.
+// Therefore we derive each side's effective checked state from timestamps,
+// only falling back to the grammar map when neither timestamp exists.
 function mergeProgress(
   local: DoneMap,
+  localCheckedAt: Record<string, number>,
+  localTombstones: Record<string, number>,
   remote: Record<string, boolean>,
-  tombstones: Record<string, number> = {},
-): DoneMap {
-  const result: DoneMap = { ...local };
-  for (const k of Object.keys(remote)) {
-    if (!(k in tombstones)) result[k] = true;
+  remoteCheckedAt: Record<string, number>,
+  remoteTombstones: Record<string, number>,
+): { done: DoneMap; checkedAt: Record<string, number>; tombstones: Record<string, number> } {
+  const allKeys = new Set([
+    ...Object.keys(local),
+    ...Object.keys(localCheckedAt),
+    ...Object.keys(localTombstones),
+    ...Object.keys(remote),
+    ...Object.keys(remoteCheckedAt),
+    ...Object.keys(remoteTombstones),
+  ]);
+
+  const done: DoneMap = {};
+  const checkedAt: Record<string, number> = {};
+  const tombstones: Record<string, number> = {};
+
+  for (const k of allKeys) {
+    const localCheckedTs = localCheckedAt[k] ?? 0;
+    const localTombstoneTs = localTombstones[k] ?? 0;
+    const localLastTs = Math.max(localCheckedTs, localTombstoneTs);
+    // Derive effective state: if tombstone is more recent than checkedAt the
+    // rule is unchecked; if equal/both-zero fall back to the grammar map.
+    const localEffective =
+      localTombstoneTs > localCheckedTs
+        ? false
+        : localCheckedTs > localTombstoneTs
+          ? true
+          : !!local[k];
+
+    const remoteCheckedTs = remoteCheckedAt[k] ?? 0;
+    const remoteTombstoneTs = remoteTombstones[k] ?? 0;
+    const remoteLastTs = Math.max(remoteCheckedTs, remoteTombstoneTs);
+    // Same derivation for remote. This correctly handles Firestore's merge
+    // behaviour where the grammar map may still contain an unchecked key —
+    // the tombstone timestamp is the real authority.
+    const remoteEffective =
+      remoteTombstoneTs > remoteCheckedTs
+        ? false
+        : remoteCheckedTs > remoteTombstoneTs
+          ? true
+          : !!remote[k];
+
+    let isDone: boolean;
+    if (remoteLastTs > localLastTs) {
+      isDone = remoteEffective;
+    } else if (localLastTs > remoteLastTs) {
+      isDone = localEffective;
+    } else {
+      // Tie (equal or both 0): union so old checked rules survive migration.
+      isDone = localEffective || remoteEffective;
+    }
+
+    if (isDone) {
+      done[k] = true;
+      const mergedTs = Math.max(localCheckedTs, remoteCheckedTs);
+      if (mergedTs > 0) checkedAt[k] = mergedTs;
+    } else {
+      const mergedTs = Math.max(localTombstoneTs, remoteTombstoneTs);
+      if (mergedTs > 0) tombstones[k] = mergedTs;
+    }
   }
-  return result;
+
+  return { done, checkedAt, tombstones };
+}
+
+// Merge two note-tombstone maps; the higher timestamp wins per note ID.
+function mergeNoteTombstones(
+  local: Record<string, number>,
+  remote: Record<string, number>,
+): Record<string, number> {
+  const merged: Record<string, number> = { ...local };
+  for (const [id, ts] of Object.entries(remote)) {
+    if (!(id in merged) || ts > merged[id]) merged[id] = ts;
+  }
+  return merged;
+}
+
+// Filter notes that have been tombstoned after their last update.
+function applyNoteTombstones(
+  notes: StoredNote[],
+  tombstones: Record<string, number>,
+): StoredNote[] {
+  return notes.filter((n) => !(n.id in tombstones) || tombstones[n.id] <= n.updatedAt);
 }
 
 function mergeNotesList(local: StoredNote[], remote: Map<string, StoredNote>): StoredNote[] {
@@ -150,9 +262,6 @@ export function AuthSyncProvider({ children }: { children: ReactNode }) {
   const [authLoading, setAuthLoading] = useState(true);
   const [syncStatus, setSyncStatus] = useState<SyncStatus>('idle');
   const [lastSyncAt, setLastSyncAt] = useState<Date | null>(null);
-  const [mergeDialogResolve, setMergeDialogResolve] = useState<
-    ((choice: 'merge' | 'replace') => void) | null
-  >(null);
 
   const userRef = useRef<User | null>(null);
   const syncDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -173,14 +282,27 @@ export function AuthSyncProvider({ children }: { children: ReactNode }) {
     }
     setSyncStatus('syncing');
     try {
-      const { grammar, murphy, grammarTombstones, murphyTombstones, notes, theme } = readAllLocal();
+      const {
+        grammar,
+        grammarCheckedAt,
+        grammarTombstones,
+        murphy,
+        murphyCheckedAt,
+        murphyTombstones,
+        notes,
+        notesTombstones,
+        theme,
+      } = readAllLocal();
       await pushAllData(
         currentUser.uid,
         grammar,
-        murphy,
+        grammarCheckedAt,
         grammarTombstones,
+        murphy,
+        murphyCheckedAt,
         murphyTombstones,
         notes,
+        notesTombstones,
         theme,
         getProvider(currentUser),
         currentUser.displayName ?? '',
@@ -221,14 +343,15 @@ export function AuthSyncProvider({ children }: { children: ReactNode }) {
   const handleNoteDeleted = useCallback(
     async (noteId: string): Promise<void> => {
       if (!userRef.current) return;
-      if (!navigator.onLine) {
-        schedulePush();
-        return;
-      }
+      // Always schedule a push so the tombstone reaches the user doc in Firestore,
+      // which ensures the deletion propagates even if the direct subcollection
+      // delete below fails (e.g. offline).
+      schedulePush();
+      if (!navigator.onLine) return;
       try {
         await deleteNoteFromFirestore(userRef.current.uid, noteId);
       } catch {
-        schedulePush();
+        // Tombstone via schedulePush is sufficient to propagate the deletion.
       }
     },
     [schedulePush],
@@ -241,13 +364,23 @@ export function AuthSyncProvider({ children }: { children: ReactNode }) {
   const applyLocalWrite = useCallback(
     (
       grammar: DoneMap,
+      grammarCheckedAt: Record<string, number>,
+      grammarTombstones: Record<string, number>,
       murphy: DoneMap,
+      murphyCheckedAt: Record<string, number>,
+      murphyTombstones: Record<string, number>,
       notes: StoredNote[],
+      notesTombstones: Record<string, number>,
       theme: 'dark' | 'light' | null,
     ): void => {
       localStorage.setItem(LS_GRAMMAR, JSON.stringify(grammar));
+      localStorage.setItem(LS_GRAMMAR_CHECKED_AT, JSON.stringify(grammarCheckedAt));
+      localStorage.setItem(LS_GRAMMAR_TOMBSTONES, JSON.stringify(grammarTombstones));
       localStorage.setItem(LS_MURPHY, JSON.stringify(murphy));
+      localStorage.setItem(LS_MURPHY_CHECKED_AT, JSON.stringify(murphyCheckedAt));
+      localStorage.setItem(LS_MURPHY_TOMBSTONES, JSON.stringify(murphyTombstones));
       localStorage.setItem(LS_NOTES, JSON.stringify(notes));
+      localStorage.setItem(LS_NOTES_TOMBSTONES, JSON.stringify(notesTombstones));
       if (theme) localStorage.setItem(LS_THEME, theme);
       window.dispatchEvent(new CustomEvent(SYNC_APPLIED_EVENT));
     },
@@ -255,12 +388,11 @@ export function AuthSyncProvider({ children }: { children: ReactNode }) {
   );
 
   // -------------------------------------------------------------------------
-  // On sign-in: pull cloud data, merge, setup listeners
+  // On sign-in: pull cloud data, merge (last-write-wins), setup listeners
   // -------------------------------------------------------------------------
 
   const handleUserSignedIn = useCallback(
     async (currentUser: User): Promise<void> => {
-      // Clean up any previous listeners
       if (snapshotUnsubRef.current) {
         snapshotUnsubRef.current();
         snapshotUnsubRef.current = null;
@@ -274,7 +406,6 @@ export function AuthSyncProvider({ children }: { children: ReactNode }) {
         ]);
 
         const local = readAllLocal();
-        const localHasData = hasData(local.grammar, local.murphy, local.notes);
         const cloudHasData =
           cloudDoc !== null &&
           hasData(
@@ -283,59 +414,69 @@ export function AuthSyncProvider({ children }: { children: ReactNode }) {
             Array.from(cloudNotes.values()),
           );
 
-        if (localHasData && cloudHasData) {
-          const savedPref = loadMergePref();
-          const choice =
-            savedPref !== 'ask'
-              ? savedPref
-              : await new Promise<'merge' | 'replace'>((resolve) => {
-                  setMergeDialogResolve(() => resolve);
-                });
-
-          if (choice === 'merge') {
-            // Run migrations on cloud data before merging
-            const migratedCloud =
-              cloudDoc && cloudDoc.contentVersion < CONTENT_VERSION
-                ? applyMigrations(
-                    {
-                      grammar: cloudDoc.progress.grammar,
-                      murphy: cloudDoc.progress.murphy,
-                      notes: Array.from(cloudNotes.values()),
-                    },
-                    cloudDoc.contentVersion,
-                  )
-                : {
-                    grammar: cloudDoc?.progress.grammar ?? {},
-                    murphy: cloudDoc?.progress.murphy ?? {},
+        if (cloudHasData && cloudDoc) {
+          // Migrate cloud data if needed, then merge with last-write-wins
+          const migratedCloud =
+            cloudDoc.contentVersion < CONTENT_VERSION
+              ? applyMigrations(
+                  {
+                    grammar: cloudDoc.progress.grammar,
+                    murphy: cloudDoc.progress.murphy,
                     notes: Array.from(cloudNotes.values()),
-                  };
+                  },
+                  cloudDoc.contentVersion,
+                )
+              : {
+                  grammar: cloudDoc.progress.grammar,
+                  murphy: cloudDoc.progress.murphy,
+                  notes: Array.from(cloudNotes.values()),
+                };
 
-            const merged = {
-              grammar: mergeProgress(local.grammar, migratedCloud.grammar, local.grammarTombstones),
-              murphy: mergeProgress(local.murphy, migratedCloud.murphy, local.murphyTombstones),
-              notes: mergeNotesList(
-                local.notes,
-                new Map(migratedCloud.notes.map((n) => [n.id, n])),
-              ),
-              theme: local.theme ?? cloudDoc?.settings.theme ?? null,
-            };
-            applyLocalWrite(merged.grammar, merged.murphy, merged.notes, merged.theme);
-          }
-          // 'replace': keep local as-is, push will overwrite cloud
-        } else if (cloudHasData && cloudDoc) {
-          // Only cloud has data — import it, run migrations
-          const migrated = applyMigrations(
-            {
-              grammar: cloudDoc.progress.grammar,
-              murphy: cloudDoc.progress.murphy,
-              notes: Array.from(cloudNotes.values()),
-            },
-            cloudDoc.contentVersion,
+          const remoteGrammarCheckedAt = toMillisMap(cloudDoc.progress.grammarCheckedAt);
+          const remoteGrammarTombstones = toMillisMap(cloudDoc.progress.grammarTombstones);
+          const remoteMurphyCheckedAt = toMillisMap(cloudDoc.progress.murphyCheckedAt);
+          const remoteMurphyTombstones = toMillisMap(cloudDoc.progress.murphyTombstones);
+          const remoteNoteTombstones = toMillisMap(cloudDoc.progress.notesTombstones);
+
+          const mergedGrammar = mergeProgress(
+            local.grammar,
+            local.grammarCheckedAt,
+            local.grammarTombstones,
+            migratedCloud.grammar,
+            remoteGrammarCheckedAt,
+            remoteGrammarTombstones,
           );
-          const theme = cloudDoc.settings.theme ?? local.theme;
-          applyLocalWrite(migrated.grammar, migrated.murphy, migrated.notes, theme);
+          const mergedMurphy = mergeProgress(
+            local.murphy,
+            local.murphyCheckedAt,
+            local.murphyTombstones,
+            migratedCloud.murphy,
+            remoteMurphyCheckedAt,
+            remoteMurphyTombstones,
+          );
+
+          const mergedNoteTombstones = mergeNoteTombstones(
+            local.notesTombstones,
+            remoteNoteTombstones,
+          );
+          const mergedNotes = applyNoteTombstones(
+            mergeNotesList(local.notes, new Map(migratedCloud.notes.map((n) => [n.id, n]))),
+            mergedNoteTombstones,
+          );
+
+          applyLocalWrite(
+            mergedGrammar.done,
+            mergedGrammar.checkedAt,
+            mergedGrammar.tombstones,
+            mergedMurphy.done,
+            mergedMurphy.checkedAt,
+            mergedMurphy.tombstones,
+            mergedNotes,
+            mergedNoteTombstones,
+            local.theme ?? cloudDoc.settings.theme ?? null,
+          );
         }
-        // else: only local has data or neither → just push local
+        // else: only local data or no data → push local to cloud
 
         await pushToFirestore(currentUser);
 
@@ -344,46 +485,60 @@ export function AuthSyncProvider({ children }: { children: ReactNode }) {
           if (!remoteDoc) return;
           const loc = readAllLocal();
 
-          // Merge remote tombstones into local (union: most recent unmark per rule wins)
-          const remoteTsGrammar = remoteDoc.progress.grammarTombstones ?? {};
-          const remoteTsMurphy = remoteDoc.progress.murphyTombstones ?? {};
-          const mergedTsGrammar: Record<string, number> = { ...loc.grammarTombstones };
-          for (const [k, ts] of Object.entries(remoteTsGrammar)) {
-            const remoteMs = ts.toMillis();
-            if (!(k in mergedTsGrammar) || remoteMs > mergedTsGrammar[k]) {
-              mergedTsGrammar[k] = remoteMs;
-            }
-          }
-          const mergedTsMurphy: Record<string, number> = { ...loc.murphyTombstones };
-          for (const [k, ts] of Object.entries(remoteTsMurphy)) {
-            const remoteMs = ts.toMillis();
-            if (!(k in mergedTsMurphy) || remoteMs > mergedTsMurphy[k]) {
-              mergedTsMurphy[k] = remoteMs;
-            }
-          }
+          const remoteGrammarCheckedAt = toMillisMap(remoteDoc.progress.grammarCheckedAt);
+          const remoteGrammarTombstones = toMillisMap(remoteDoc.progress.grammarTombstones);
+          const remoteMurphyCheckedAt = toMillisMap(remoteDoc.progress.murphyCheckedAt);
+          const remoteMurphyTombstones = toMillisMap(remoteDoc.progress.murphyTombstones);
+          const remoteNoteTombstones = toMillisMap(remoteDoc.progress.notesTombstones);
 
-          const ng = mergeProgress(loc.grammar, remoteDoc.progress.grammar, mergedTsGrammar);
-          const nm = mergeProgress(loc.murphy, remoteDoc.progress.murphy, mergedTsMurphy);
+          const mergedGrammar = mergeProgress(
+            loc.grammar,
+            loc.grammarCheckedAt,
+            loc.grammarTombstones,
+            remoteDoc.progress.grammar,
+            remoteGrammarCheckedAt,
+            remoteGrammarTombstones,
+          );
+          const mergedMurphy = mergeProgress(
+            loc.murphy,
+            loc.murphyCheckedAt,
+            loc.murphyTombstones,
+            remoteDoc.progress.murphy,
+            remoteMurphyCheckedAt,
+            remoteMurphyTombstones,
+          );
+
+          // Merge note tombstones and re-filter local notes
+          const mergedNoteTombstones = mergeNoteTombstones(
+            loc.notesTombstones,
+            remoteNoteTombstones,
+          );
+          const filteredNotes = applyNoteTombstones(loc.notes, mergedNoteTombstones);
 
           let changed = false;
-          const ngStr = JSON.stringify(ng);
-          const nmStr = JSON.stringify(nm);
-          const tsGStr = JSON.stringify(mergedTsGrammar);
-          const tsMStr = JSON.stringify(mergedTsMurphy);
+
+          const ngStr = JSON.stringify(mergedGrammar.done);
           if (ngStr !== localStorage.getItem(LS_GRAMMAR)) {
             localStorage.setItem(LS_GRAMMAR, ngStr);
             changed = true;
           }
+          const nmStr = JSON.stringify(mergedMurphy.done);
           if (nmStr !== localStorage.getItem(LS_MURPHY)) {
             localStorage.setItem(LS_MURPHY, nmStr);
             changed = true;
           }
-          if (tsGStr !== localStorage.getItem(LS_GRAMMAR_TOMBSTONES)) {
-            localStorage.setItem(LS_GRAMMAR_TOMBSTONES, tsGStr);
+          localStorage.setItem(LS_GRAMMAR_CHECKED_AT, JSON.stringify(mergedGrammar.checkedAt));
+          localStorage.setItem(LS_MURPHY_CHECKED_AT, JSON.stringify(mergedMurphy.checkedAt));
+          localStorage.setItem(LS_GRAMMAR_TOMBSTONES, JSON.stringify(mergedGrammar.tombstones));
+          localStorage.setItem(LS_MURPHY_TOMBSTONES, JSON.stringify(mergedMurphy.tombstones));
+          localStorage.setItem(LS_NOTES_TOMBSTONES, JSON.stringify(mergedNoteTombstones));
+
+          const filteredStr = JSON.stringify(filteredNotes);
+          if (filteredStr !== localStorage.getItem(LS_NOTES)) {
+            localStorage.setItem(LS_NOTES, filteredStr);
+            changed = true;
           }
-          if (tsMStr !== localStorage.getItem(LS_MURPHY_TOMBSTONES)) {
-            localStorage.setItem(LS_MURPHY_TOMBSTONES, tsMStr);
-          }
+
           const rt = remoteDoc.settings.theme;
           if (rt && rt !== localStorage.getItem(LS_THEME)) {
             localStorage.setItem(LS_THEME, rt);
@@ -395,7 +550,8 @@ export function AuthSyncProvider({ children }: { children: ReactNode }) {
 
         const notesUnsub = subscribeToNotes(currentUser.uid, (remoteNotes) => {
           const loc = readAllLocal();
-          const merged = mergeNotesList(loc.notes, remoteNotes);
+          const raw = mergeNotesList(loc.notes, remoteNotes);
+          const merged = applyNoteTombstones(raw, loc.notesTombstones);
           const mergedStr = JSON.stringify(merged);
           if (mergedStr !== localStorage.getItem(LS_NOTES)) {
             localStorage.setItem(LS_NOTES, mergedStr);
@@ -482,10 +638,13 @@ export function AuthSyncProvider({ children }: { children: ReactNode }) {
     }
     await deleteAllUserData(uid);
     localStorage.removeItem(LS_GRAMMAR);
-    localStorage.removeItem(LS_MURPHY);
+    localStorage.removeItem(LS_GRAMMAR_CHECKED_AT);
     localStorage.removeItem(LS_GRAMMAR_TOMBSTONES);
+    localStorage.removeItem(LS_MURPHY);
+    localStorage.removeItem(LS_MURPHY_CHECKED_AT);
     localStorage.removeItem(LS_MURPHY_TOMBSTONES);
     localStorage.removeItem(LS_NOTES);
+    localStorage.removeItem(LS_NOTES_TOMBSTONES);
     localStorage.removeItem(LS_THEME);
     await deleteUser(userRef.current);
     setSyncStatus('idle');
@@ -496,17 +655,6 @@ export function AuthSyncProvider({ children }: { children: ReactNode }) {
     if (userRef.current) await pushToFirestore(userRef.current);
   }, [pushToFirestore]);
 
-  const onMergeChoice = useCallback(
-    (choice: 'merge' | 'replace', remember: boolean): void => {
-      if (remember) saveMergePref(choice);
-      if (mergeDialogResolve) {
-        mergeDialogResolve(choice);
-        setMergeDialogResolve(null);
-      }
-    },
-    [mergeDialogResolve],
-  );
-
   return (
     <AuthSyncContext.Provider
       value={{
@@ -514,8 +662,6 @@ export function AuthSyncProvider({ children }: { children: ReactNode }) {
         authLoading,
         syncStatus,
         lastSyncAt,
-        mergeDialogVisible: mergeDialogResolve !== null,
-        onMergeChoice,
         signInWithGoogle,
         signInWithEmail,
         signUpWithEmail,

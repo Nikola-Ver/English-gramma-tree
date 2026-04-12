@@ -4,7 +4,6 @@ import { AccountPage } from './components/Account/AccountPage';
 import { AuthPage } from './components/Auth/AuthPage';
 import { GrammarTab } from './components/Grammar/GrammarTab';
 import { Header } from './components/Header/Header';
-import { MergeDialog } from './components/MergeDialog/MergeDialog';
 import { MurphyTab } from './components/Murphy/MurphyTab';
 import { Tabs } from './components/Tabs';
 import { TensesTab } from './components/Tenses/TensesTab';
@@ -41,7 +40,7 @@ function AppContent() {
   const grammarProgress = useProgress('eng_v4');
   const murphyProgress = useProgress('murphy_v1');
   const { theme, toggleTheme } = useTheme();
-  const { user, authLoading, mergeDialogVisible, onMergeChoice } = useAuthSync();
+  const { user, authLoading } = useAuthSync();
 
   // Redirect to main whenever auth state settles (sign-in or sign-out)
   useEffect(() => {
@@ -122,8 +121,6 @@ function AppContent() {
           {activeTab === 'tenses' && <TensesTab targetTenseKey={targetTenseKey} />}
         </>
       )}
-
-      {mergeDialogVisible && <MergeDialog onChoice={onMergeChoice} />}
     </div>
   );
 }

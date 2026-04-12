@@ -74,6 +74,9 @@ export default defineConfig({
       },
     }),
   ],
+  server: {
+    host: true,
+  },
   root: '.',
   build: {
     outDir: 'dist',

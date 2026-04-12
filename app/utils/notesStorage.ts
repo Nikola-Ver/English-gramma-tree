@@ -17,6 +17,8 @@ export interface StoredNote {
 }
 
 const KEY = 'eng-notes-v1';
+// Must match LS_NOTES_TOMBSTONES in AuthSyncContext
+const TOMBSTONES_KEY = 'eng-notes-tombstones-v1';
 
 function readAll(): StoredNote[] {
   try {
@@ -41,7 +43,18 @@ export function saveNote(note: StoredNote): void {
   notifyNoteChanged(note);
 }
 
+function recordNoteTombstone(id: string): void {
+  try {
+    const raw = JSON.parse(localStorage.getItem(TOMBSTONES_KEY) ?? '{}') as Record<string, number>;
+    raw[id] = Date.now();
+    localStorage.setItem(TOMBSTONES_KEY, JSON.stringify(raw));
+  } catch {
+    // ignore storage errors
+  }
+}
+
 export function deleteNote(id: string): void {
+  recordNoteTombstone(id);
   writeAll(readAll().filter((n) => n.id !== id));
   notifyNoteDeleted(id);
 }

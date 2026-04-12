@@ -34,6 +34,9 @@ export function RuleItem({
   const [expOpen, setExpOpen] = useState(isTarget);
   const [shareCopied, setShareCopied] = useState(false);
   const checkRef = useRef<HTMLDivElement>(null);
+  // Touch-handling refs for immediate-first-tap expansion on mobile
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
+  const lastToggleTouchRef = useRef(0);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: intentional mount-only scroll-to-target
   useEffect(() => {
@@ -68,9 +71,35 @@ export function RuleItem({
     [isDone, level.color, onToggle, rule.id],
   );
 
+  // On mobile, fire the toggle immediately on touchend (first tap) and guard
+  // the subsequent synthetic click from double-toggling.
+  const handleExpTouchStart = useCallback((e: React.TouchEvent) => {
+    const target = e.target as Element;
+    if (target.closest('.rule-check, .rule-actions')) return;
+    const t = e.touches[0];
+    touchStartRef.current = { x: t.clientX, y: t.clientY };
+  }, []);
+
+  const handleExpTouchEnd = useCallback(
+    (e: React.TouchEvent) => {
+      if (!touchStartRef.current) return;
+      const t = e.changedTouches[0];
+      const dx = Math.abs(t.clientX - touchStartRef.current.x);
+      const dy = Math.abs(t.clientY - touchStartRef.current.y);
+      touchStartRef.current = null;
+      if (dx > 10 || dy > 10) return; // scroll gesture, not a tap
+      e.preventDefault(); // suppress the follow-up synthetic click where supported
+      lastToggleTouchRef.current = Date.now();
+      if (rule.exp) setExpOpen((v) => !v);
+    },
+    [rule.exp],
+  );
+
   const handleExpToggle = useCallback(
     (e: React.MouseEvent) => {
       e.stopPropagation();
+      // Skip if already handled by touchend (prevents double-toggle)
+      if (Date.now() - lastToggleTouchRef.current < 600) return;
       if (rule.exp) setExpOpen((v) => !v);
     },
     [rule.exp],
@@ -128,7 +157,12 @@ export function RuleItem({
       id={`ri-${rule.id}`}
       style={{ '--anim-delay': `${animDelay}s` } as React.CSSProperties}
     >
-      <div className="rule-top" onClick={handleExpToggle}>
+      <div
+        className="rule-top"
+        onClick={handleExpToggle}
+        onTouchStart={handleExpTouchStart}
+        onTouchEnd={handleExpTouchEnd}
+      >
         <div ref={checkRef} className="rule-check" onClick={handleCheck} style={checkStyle}>
           {isDone && <IconCheck className="chk-svg" />}
         </div>

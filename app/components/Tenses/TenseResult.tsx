@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { Tense } from '../../data/tenses';
+import { useNotes } from '../../hooks/useNotes';
 import { IconNote, IconPin, IconShare, IconTrash } from '../../icons';
 import { copyToClipboard } from '../../utils/clipboard';
 import type { SelectionData } from '../../utils/deepLink';
@@ -10,12 +11,7 @@ import {
   hlPosClass,
   rectsFromRangeInContainer,
 } from '../../utils/highlightRects';
-import {
-  deleteNote,
-  getNotesForContext,
-  type StoredNote,
-  saveNote,
-} from '../../utils/notesStorage';
+import { deleteNote, type StoredNote, saveNote } from '../../utils/notesStorage';
 import {
   applySelection,
   getSelectionData,
@@ -78,8 +74,8 @@ export function TenseResult({ tenseKey, tense, breadcrumbs, onRestart }: Props) 
   const deepMsgRef = useRef(deepMsg);
   deepMsgRef.current = deepMsg;
 
-  // Notes state
-  const [notes, setNotes] = useState<StoredNote[]>([]);
+  // Notes state — reacts to local actions and real-time Firestore sync
+  const [notes, setNotes] = useNotes(tenseKey, 'tense');
   const notesRef = useRef(notes);
   notesRef.current = notes;
   const [noteRects, setNoteRects] = useState<Map<string, HighlightRect[]>>(new Map());
@@ -91,11 +87,6 @@ export function TenseResult({ tenseKey, tense, breadcrumbs, onRestart }: Props) 
   activeNoteIdRef.current = activeNoteId;
   const [activeNoteAnchor, setActiveNoteAnchor] = useState<{ x: number; y: number } | null>(null);
   const [hoveredNoteId, setHoveredNoteId] = useState<string | null>(null);
-
-  // Load notes for this tense on mount
-  useEffect(() => {
-    setNotes(getNotesForContext(tenseKey, 'tense'));
-  }, [tenseKey]);
 
   // Restore deep-link selection on mount
   useEffect(() => {
