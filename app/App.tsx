@@ -34,7 +34,6 @@ function findRuleTab(ruleId: string): Tab | null {
 function AppContent() {
   const [activeTab, setActiveTab] = useState<Tab>('grammar');
   const [view, setView] = useState<View>('main');
-  const [searchQuery, setSearchQuery] = useState('');
   const [targetRuleId, setTargetRuleId] = useState<string | null>(null);
   const [targetTenseKey, setTargetTenseKey] = useState<string | null>(null);
   const grammarProgress = useProgress('eng_v4');
@@ -84,9 +83,6 @@ function AppContent() {
   return (
     <div className="wrap">
       <Header
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        showSearch={view === 'main' && (activeTab === 'grammar' || activeTab === 'murphy')}
         theme={theme}
         onToggleTheme={toggleTheme}
         onAvatarClick={handleAvatarClick}
@@ -105,7 +101,6 @@ function AppContent() {
               done={grammarProgress.done}
               onToggleRule={grammarProgress.toggleRule}
               onReset={grammarProgress.resetAll}
-              searchQuery={searchQuery}
               targetRuleId={targetRuleId}
             />
           )}
@@ -114,7 +109,6 @@ function AppContent() {
               done={murphyProgress.done}
               onToggleRule={murphyProgress.toggleRule}
               onReset={murphyProgress.resetAll}
-              searchQuery={searchQuery}
               targetRuleId={targetRuleId}
             />
           )}

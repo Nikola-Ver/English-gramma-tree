@@ -334,19 +334,289 @@
   color: var(--muted);
 }
 
-.reset-btn {
-  background: none;
-  border: 1px solid var(--border);
-  color: var(--muted);
-  border-radius: 8px;
-  padding: 6px 14px;
-  font-size: 12px;
-  cursor: pointer;
-  font-family: "Outfit", sans-serif;
-  transition: all 0.15s;
+/* Grammar header right-side action group */
+.grammar-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
 }
 
-.reset-btn:hover {
+/* Search toggle button */
+.grammar-search-btn {
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  color: var(--muted2);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    background 0.2s,
+    border-color 0.2s,
+    color 0.2s,
+    box-shadow 0.2s,
+    transform 0.15s;
+}
+
+.grammar-search-btn:hover {
+  border-color: var(--b2);
+  color: var(--b2);
+  box-shadow: 0 0 14px rgba(129, 140, 248, 0.15);
+}
+
+.grammar-search-btn.active {
+  background: rgba(129, 140, 248, 0.12);
+  border-color: rgba(129, 140, 248, 0.5);
+  color: var(--b2);
+}
+
+.grammar-search-btn:active {
+  transform: scale(0.92);
+}
+
+/* Animated search row */
+.grammar-search-row {
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  margin-bottom: 0;
+  transition:
+    max-height 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.25s ease,
+    margin-bottom 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.grammar-search-row.open {
+  max-height: 72px;
+  opacity: 1;
+  margin-bottom: 1.5rem;
+}
+
+.grammar-search-inner {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.grammar-search-icon {
+  position: absolute;
+  left: 13px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+}
+
+.grammar-search-input {
+  width: 100%;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  padding: 11px 40px 11px 40px;
+  font-size: 14px;
+  color: var(--text);
+  font-family: "Outfit", sans-serif;
+  outline: none;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
+  /* Remove default search cancel button */
+  appearance: none;
+}
+
+.grammar-search-input:focus {
+  border-color: rgba(129, 140, 248, 0.5);
+  box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.08);
+}
+
+.grammar-search-input::placeholder {
+  color: var(--muted);
+}
+
+.grammar-search-input::-webkit-search-cancel-button {
+  display: none;
+}
+
+/* Clear button inside search input */
+.grammar-search-clear {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: none;
+  background: var(--border2);
+  color: var(--muted2);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    background 0.15s,
+    color 0.15s;
+  flex-shrink: 0;
+}
+
+.grammar-search-clear:hover {
+  background: var(--border2);
+  color: var(--text);
+}
+
+/* Reset confirmation banner — slides in below the tab header */
+.reset-confirm-banner {
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  margin-bottom: 0;
+  transition:
+    max-height 0.32s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.22s ease,
+    margin-bottom 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.reset-confirm-banner.open {
+  max-height: 56px;
+  opacity: 1;
+  margin-bottom: 1.5rem;
+}
+
+.reset-confirm-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 9px 14px;
+  background: rgba(239, 68, 68, 0.07);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 10px;
+  font-size: 13px;
+}
+
+.reset-confirm-text {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #f87171;
+  flex: 1;
+  min-width: 0;
+}
+
+.reset-confirm-cancel {
+  flex-shrink: 0;
+  background: none;
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  border-radius: 7px;
+  color: #f87171;
+  font-size: 12px;
+  font-family: "Outfit", sans-serif;
+  padding: 3px 10px;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    border-color 0.15s;
+  white-space: nowrap;
+}
+
+.reset-confirm-cancel:hover {
+  background: rgba(239, 68, 68, 0.12);
+  border-color: #ef4444;
+}
+
+/* Shared reset icon button — used by both GrammarTab and MurphyTab headers */
+.tab-reset-btn {
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  color: var(--muted2);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    background 0.2s,
+    border-color 0.2s,
+    color 0.2s,
+    box-shadow 0.2s,
+    transform 0.15s;
+}
+
+.tab-reset-btn:hover {
   border-color: var(--border2);
   color: var(--text);
+}
+
+.tab-reset-btn:active {
+  transform: scale(0.92);
+}
+
+/* Confirming state — first click arms the button, second click fires the reset */
+.tab-reset-btn.confirming {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.45);
+  color: #ef4444;
+  animation: reset-warn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.tab-reset-btn.confirming:hover {
+  background: rgba(239, 68, 68, 0.18);
+  border-color: #ef4444;
+  box-shadow: 0 0 14px rgba(239, 68, 68, 0.2);
+}
+
+@keyframes reset-warn {
+  0% {
+    transform: scale(1) rotate(0deg);
+  }
+  30% {
+    transform: scale(1.14) rotate(-10deg);
+  }
+  60% {
+    transform: scale(0.94) rotate(6deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+/* ── Grammar header — mobile ──────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .grammar-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    padding: 0.875rem 1rem;
+  }
+
+  .grammar-progress-block {
+    gap: 10px;
+  }
+
+  /* Progress bar stretches to fill available space */
+  .grammar-bar-bg {
+    flex: 1;
+    width: auto;
+    min-width: 60px;
+  }
+
+  /* Right group takes full width; test button fills remaining space */
+  .grammar-header-right {
+    width: 100%;
+  }
+
+  .global-test-btn {
+    flex: 1;
+    justify-content: center;
+  }
 }

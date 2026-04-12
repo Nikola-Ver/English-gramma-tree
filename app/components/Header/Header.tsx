@@ -3,9 +3,6 @@ import { useAuthSync } from '../../context/AuthSyncContext';
 import './Header.css';
 
 interface Props {
-  searchQuery: string;
-  onSearchChange: (q: string) => void;
-  showSearch: boolean;
   theme: 'dark' | 'light';
   onToggleTheme: () => void;
   onAvatarClick: () => void;
@@ -65,15 +62,7 @@ function Avatar() {
   );
 }
 
-export function Header({
-  searchQuery,
-  onSearchChange,
-  showSearch,
-  theme,
-  onToggleTheme,
-  onAvatarClick,
-  onTitleClick,
-}: Props) {
+export function Header({ theme, onToggleTheme, onAvatarClick, onTitleClick }: Props) {
   const { user } = useAuthSync();
 
   return (
@@ -85,18 +74,6 @@ export function Header({
               English <span>Grammar</span> Tree
             </button>
           </h1>
-          <div className="search-wrap" style={showSearch ? undefined : { visibility: 'hidden' }}>
-            <span className="search-icon">🔍</span>
-            <input
-              className="search-input"
-              type="text"
-              placeholder="Поиск по теме..."
-              value={searchQuery}
-              onChange={(e) => onSearchChange(e.target.value)}
-              tabIndex={showSearch ? undefined : -1}
-              aria-hidden={showSearch ? undefined : true}
-            />
-          </div>
         </div>
         <div className="header-controls">
           <button

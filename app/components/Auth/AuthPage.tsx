@@ -1,4 +1,4 @@
-import { type FormEvent, useState } from 'react';
+import { useState } from 'react';
 import { useAuthSync } from '../../context/AuthSyncContext';
 import './AuthPage.css';
 
@@ -6,34 +6,8 @@ interface Props {
   onContinueWithout: () => void;
 }
 
-type Mode = 'signin' | 'signup';
-
-function getAuthErrorMessage(code: string): string {
-  switch (code) {
-    case 'auth/invalid-email':
-      return 'Неверный адрес электронной почты.';
-    case 'auth/user-not-found':
-    case 'auth/wrong-password':
-    case 'auth/invalid-credential':
-      return 'Неверная почта или пароль.';
-    case 'auth/email-already-in-use':
-      return 'Этот адрес уже зарегистрирован. Попробуйте войти.';
-    case 'auth/weak-password':
-      return 'Пароль должен содержать не менее 6 символов.';
-    case 'auth/popup-closed-by-user':
-      return 'Окно входа было закрыто.';
-    case 'auth/network-request-failed':
-      return 'Ошибка сети. Проверьте подключение.';
-    default:
-      return 'Что-то пошло не так. Попробуйте ещё раз.';
-  }
-}
-
 export function AuthPage({ onContinueWithout }: Props) {
-  const { signInWithGoogle, signInWithEmail, signUpWithEmail } = useAuthSync();
-  const [mode, setMode] = useState<Mode>('signin');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const { signInWithGoogle } = useAuthSync();
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -45,26 +19,8 @@ export function AuthPage({ onContinueWithout }: Props) {
     } catch (e) {
       const code = (e as { code?: string }).code ?? '';
       if (code !== 'auth/popup-closed-by-user') {
-        setError(getAuthErrorMessage(code));
+        setError('Что-то пошло не так. Попробуйте ещё раз.');
       }
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function handleEmailSubmit(e: FormEvent) {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
-    try {
-      if (mode === 'signin') {
-        await signInWithEmail(email, password);
-      } else {
-        await signUpWithEmail(email, password);
-      }
-    } catch (err) {
-      const code = (err as { code?: string }).code ?? '';
-      setError(getAuthErrorMessage(code));
     } finally {
       setLoading(false);
     }
@@ -117,51 +73,14 @@ export function AuthPage({ onContinueWithout }: Props) {
               d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
             />
           </svg>
-          Войти через Google
+          {loading ? 'Подождите…' : 'Войти через Google'}
         </button>
 
-        <div className="auth-divider">
-          <span>или</span>
-        </div>
-
-        <form className="auth-form" onSubmit={handleEmailSubmit}>
-          <input
-            type="email"
-            className="auth-input"
-            placeholder="Эл. почта"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            autoComplete="email"
-          />
-          <input
-            type="password"
-            className="auth-input"
-            placeholder="Пароль"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            autoComplete={mode === 'signin' ? 'current-password' : 'new-password'}
-            minLength={6}
-          />
-
-          {error && <p className="auth-error">{error}</p>}
-
-          <button type="submit" className="auth-submit-btn" disabled={loading}>
-            {loading ? 'Подождите…' : mode === 'signin' ? 'Войти' : 'Создать аккаунт'}
-          </button>
-        </form>
-
-        <button
-          type="button"
-          className="auth-mode-toggle"
-          onClick={() => {
-            setMode(mode === 'signin' ? 'signup' : 'signin');
-            setError('');
-          }}
-        >
-          {mode === 'signin' ? 'Нет аккаунта? Зарегистрироваться' : 'Уже есть аккаунт? Войти'}
-        </button>
+        {error && (
+          <p className="auth-error" style={{ marginTop: '12px' }}>
+            {error}
+          </p>
+        )}
 
         <button type="button" className="auth-skip-btn" onClick={onContinueWithout}>
           Продолжить без аккаунта

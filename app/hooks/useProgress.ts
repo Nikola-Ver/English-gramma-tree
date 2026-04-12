@@ -112,7 +112,22 @@ export function useProgress(storageKey = DEFAULT_SK) {
   }
 
   function resetAll() {
-    saveTimestampMap({}, tk);
+    const now = Date.now();
+
+    // Tombstone every rule that was checked (or had a checkedAt record) so the
+    // merge logic on every device sees a timestamp newer than any checkedAt and
+    // applies the uncheck, rather than letting old cloud timestamps win.
+    const existingCheckedAt = loadTimestampMap(cak);
+    const tombstones: TombstoneMap = {};
+
+    for (const id of Object.keys(done)) {
+      if (done[id]) tombstones[id] = now;
+    }
+    for (const id of Object.keys(existingCheckedAt)) {
+      tombstones[id] = now;
+    }
+
+    saveTimestampMap(tombstones, tk);
     saveTimestampMap({}, cak);
     setDone({});
     notifyProgressChanged();

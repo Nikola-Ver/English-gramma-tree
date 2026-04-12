@@ -111,6 +111,7 @@
 
 .rule-check.anim-check {
   animation: checkPulse 0.55s ease forwards;
+  pointer-events: none;
 }
 
 .rule-main {

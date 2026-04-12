@@ -82,3 +82,165 @@
 .murphy-test-btn:active {
   transform: scale(0.98);
 }
+
+/* Search toggle button */
+.murphy-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.murphy-search-btn {
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  color: var(--muted2);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    background 0.2s,
+    border-color 0.2s,
+    color 0.2s,
+    box-shadow 0.2s,
+    transform 0.15s;
+}
+
+.murphy-search-btn:hover {
+  border-color: var(--c1);
+  color: var(--c1);
+  box-shadow: 0 0 14px rgba(244, 114, 182, 0.15);
+}
+
+.murphy-search-btn.active {
+  background: rgba(244, 114, 182, 0.1);
+  border-color: rgba(244, 114, 182, 0.5);
+  color: var(--c1);
+}
+
+.murphy-search-btn:active {
+  transform: scale(0.92);
+}
+
+/* Animated search row */
+.murphy-search-row {
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  margin-bottom: 0;
+  transition:
+    max-height 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.25s ease,
+    margin-bottom 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.murphy-search-row.open {
+  max-height: 72px;
+  opacity: 1;
+  margin-bottom: 1.5rem;
+}
+
+.murphy-search-inner {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.murphy-search-icon {
+  position: absolute;
+  left: 13px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+}
+
+.murphy-search-input {
+  width: 100%;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  padding: 11px 40px 11px 40px;
+  font-size: 14px;
+  color: var(--text);
+  font-family: "Outfit", sans-serif;
+  outline: none;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
+  appearance: none;
+}
+
+.murphy-search-input:focus {
+  border-color: rgba(244, 114, 182, 0.5);
+  box-shadow: 0 0 0 3px rgba(244, 114, 182, 0.08);
+}
+
+.murphy-search-input::placeholder {
+  color: var(--muted);
+}
+
+.murphy-search-input::-webkit-search-cancel-button {
+  display: none;
+}
+
+.murphy-search-clear {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: none;
+  background: var(--border2);
+  color: var(--muted2);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    background 0.15s,
+    color 0.15s;
+  flex-shrink: 0;
+}
+
+.murphy-search-clear:hover {
+  color: var(--text);
+}
+
+/* ── Murphy header — mobile ───────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .murphy-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    padding: 0.875rem 1rem;
+  }
+
+  .murphy-progress-block {
+    gap: 10px;
+  }
+
+  .murphy-bar-bg {
+    flex: 1;
+    width: auto;
+    min-width: 60px;
+  }
+
+  .murphy-header-right {
+    width: 100%;
+  }
+
+  .murphy-test-btn {
+    flex: 1;
+    justify-content: center;
+  }
+}

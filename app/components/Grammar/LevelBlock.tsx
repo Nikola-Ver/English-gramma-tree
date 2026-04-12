@@ -31,6 +31,9 @@ export function LevelBlock({
   const [userClosed, setUserClosed] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
   const closingTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Ref to the open-animation transitionend handler so it can be cancelled if
+  // a close starts before the open animation completes.
+  const openTransitionHandler = useRef<((e: TransitionEvent) => void) | null>(null);
   const k = level.id.toLowerCase();
   const { total, checked } = countLevel(level, done);
   const pct = total ? Math.round((checked / total) * 100) : 0;
@@ -47,6 +50,11 @@ export function LevelBlock({
     if (!el) return;
 
     if (open) {
+      // Cancel any stale open-animation handler left over from a previous cycle
+      if (openTransitionHandler.current) {
+        el.removeEventListener('transitionend', openTransitionHandler.current);
+        openTransitionHandler.current = null;
+      }
       if (closingTimer.current) {
         clearTimeout(closingTimer.current);
         closingTimer.current = null;
@@ -69,16 +77,24 @@ export function LevelBlock({
               el.style.maxHeight = 'none';
               el.style.overflow = 'visible';
               el.removeEventListener('transitionend', onEnd);
+              openTransitionHandler.current = null;
             }
           };
+          openTransitionHandler.current = onEnd;
           el.addEventListener('transitionend', onEnd);
         });
       });
     } else {
       if (!everOpened) return;
 
+      // Cancel the open-animation handler before it can fire during the close
+      if (openTransitionHandler.current) {
+        el.removeEventListener('transitionend', openTransitionHandler.current);
+        openTransitionHandler.current = null;
+      }
+
       setIsClosing(true);
-      el.style.overflow = '';
+      el.style.overflow = 'hidden';
       el.style.maxHeight = `${el.scrollHeight}px`;
       el.style.opacity = '1';
 
@@ -90,6 +106,11 @@ export function LevelBlock({
           el.style.opacity = '0';
 
           closingTimer.current = setTimeout(() => {
+            // Reset all inline styles so CSS values take full control cleanly
+            el.style.transition = '';
+            el.style.maxHeight = '';
+            el.style.opacity = '';
+            el.style.overflow = '';
             setIsClosing(false);
             closingTimer.current = null;
           }, 460);
